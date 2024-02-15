@@ -1,0 +1,94 @@
+.radix-themes {
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem) rotate(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotate(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.appear-order-1 {
+  opacity: 0;
+  animation: fadeIn 0.4s linear both;
+  animation-delay: 0s;
+}
+
+.appear-order-2 {
+  opacity: 0;
+  animation: fadeIn 0.4s linear both;
+  animation-delay: 0.1s;
+}
+
+.appear-order-3 {
+  opacity: 0;
+  animation: fadeIn 0.4s linear both;
+  animation-delay: 0.2s;
+}
+
+.fade-order-1 {
+  opacity: 0;
+  animation: fadeInUp 0.4s linear both;
+  animation-delay: 0s;
+}
+
+.fade-order-2 {
+  opacity: 0;
+  animation: fadeInUp 0.4s linear both;
+  animation-delay: 0.1s;
+}
+
+.fade-order-3 {
+  opacity: 0;
+  animation: fadeInUp 0.4s linear both;
+  animation-delay: 0.2s;
+}
+
+.fade-order-4 {
+  opacity: 0;
+  animation: fadeInUp 0.4s linear both;
+  animation-delay: 0.3s;
+}
+
+.fade-order-5 {
+  opacity: 0;
+  animation: fadeInUp 0.4s linear both;
+  animation-delay: 0.3s;
+}
+
+.fade-order-6 {
+  opacity: 0;
+  animation: fadeInUp 0.4s linear both;
+  animation-delay: 0.4s;
+}
+
+.fade-order-7 {
+  opacity: 0;
+  animation: fadeInUp 0.4s linear both;
+  animation-delay: 0.5s;
+}
+
+.fade-order-8 {
+  opacity: 0;
+  animation: fadeInUp 0.4s linear both;
+  animation-delay: 0.6s;
+}
+
+.fade-order-9 {
+  opacity: 0;
+  animation: fadeInUp 0.4s linear both;
+  animation-delay: 0.7s;
+}
