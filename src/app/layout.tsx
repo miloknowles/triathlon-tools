@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Script from 'next/script';
 
 import '@radix-ui/themes/styles.css';
+
 // https://www.radix-ui.com/themes/docs/theme/token-reference
 import './theme-config.css';
 
@@ -41,8 +42,8 @@ export default function RootLayout({
         <Script src="/gtag.js" async/>
       </head>
       <body className={cx(sans.className)}>
-        <Theme appearance="dark" accentColor="indigo" radius="medium">
-          {/* <Navigation/> */}
+        <Theme appearance="light" accentColor="indigo" radius="medium">
+          <Navigation/>
           {children}
           <Footer/>
         </Theme>
