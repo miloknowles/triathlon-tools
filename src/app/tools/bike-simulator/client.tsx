@@ -2,8 +2,8 @@
 
 import { Separator } from "@radix-ui/themes";
 import { useState } from "react";
-import Toolbar from "./toolbar";
-import ResultsDisplay from "./ResultsDisplay";
+import Toolbar from "./components/toolbar";
+import ResultsDisplay from "./components/ResultsDisplay";
 import FAQs from "./components/FAQs";
 
 export default function Tool() {

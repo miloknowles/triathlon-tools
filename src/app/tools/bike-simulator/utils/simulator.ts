@@ -1,4 +1,4 @@
-import { State, Params, Point, Data } from "./utils/types";
+import { State, Params, Point, Data } from "./types";
 
 
 /**
@@ -78,6 +78,7 @@ function getRho(y: number, Tk: number, RH: number) {
   const Tc = Tk - zeroDegCelsiusInKelvin;
 
   // https://physics.stackexchange.com/questions/297273/how-to-calculate-air-density
+  // https://en.wikipedia.org/wiki/Tetens_equation
   let Ps = 0;
   if (Tk < zeroDegCelsiusInKelvin) {
     Ps = 611 * Math.exp(21.875 * Tc / (Tc + 265.5)); // MPa

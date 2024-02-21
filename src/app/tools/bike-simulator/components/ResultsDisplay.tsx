@@ -4,8 +4,8 @@ import { CalloutRoot, CalloutText, Card, Code, Flex, Grid, Heading, Text } from 
 import { AreaChart, LineChart, Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow, Title } from "@tremor/react";
 
 import useSWR from "swr"
-import { Results } from "./utils/types";
-import MetricCard from "./components/MetricCard";
+import { Results } from "../utils/types";
+import MetricCard from "./MetricCard";
 import { Button } from "@/components/ui/button";
 
 
