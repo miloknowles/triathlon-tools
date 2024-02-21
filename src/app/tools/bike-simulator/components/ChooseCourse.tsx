@@ -4,7 +4,7 @@ import * as React from "react";
 
 import { SearchSelect, SearchSelectItem } from "@tremor/react";
 
-import { COURSES } from "./courses";
+import { COURSES } from "../utils/courses";
  
 
 export default function ChooseCourse(props: { value: any, setValue: (value: string) => void }) { 

@@ -7,8 +7,8 @@ import {
   DialogRoot, DialogTrigger, Flex, Grid, Heading, IconButton, Text
 } from "@radix-ui/themes";
 import { Link as RadixLink } from "@radix-ui/themes"
-import ChooseCourse from "./ChooseCourse";
-import { COURSES } from "./courses";
+import ChooseCourse from "./components/ChooseCourse";
+import { COURSES } from "./utils/courses";
 import {
   HoverCard,
   HoverCardContent,
@@ -31,11 +31,11 @@ import { useSWRConfig } from "swr"
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Badge, NumberInput, Tab, TabGroup, TabList, TabPanel, TabPanels } from "@tremor/react";
-import { presetsCRR, presetsCdA, presetsDtl } from "./presets";
+import { presetsCRR, presetsCdA, presetsDtl } from "./utils/presets";
 import { simulate } from "./simulator";
-import RollingInput from "./RollingInput";
-import LossInput from "./LossInput";
-import CdAInput from "./CdAInput";
+import RollingInput from "./components/RollingInput";
+import LossInput from "./components/LossInput";
+import CdAInput from "./components/CdAInput";
 
 
 const formSchema = z.object({

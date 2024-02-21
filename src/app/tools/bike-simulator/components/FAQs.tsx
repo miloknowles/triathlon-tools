@@ -5,7 +5,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Code, Flex, Grid, Heading, Text } from "@radix-ui/themes";
-import { Link as RadixLink } from "@radix-ui/themes";
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from "@tremor/react";
 import Image from "next/image";
 
@@ -22,7 +21,7 @@ export default function FAQs() {
           <AccordionContent>
             <Flex direction="column" gap="2">
               <Text>
-                For the <Code>Crr</Code> presets, I'm using data from Silca's <RadixLink href="https://silca.cc/pages/power-calc">Power Calculator</RadixLink>.
+                For the <Code>Crr</Code> presets, I'm using data from Silca's <a className="text-primary" href="https://silca.cc/pages/power-calc">Power Calculator</a>.
               </Text>
               <Text>
                 To get a more accurate estimate for your race, start with a base value for the surface you'll be riding on,
@@ -140,7 +139,7 @@ export default function FAQs() {
               </TableBody>
             </Table>
             <Text>
-              Alternatively, you can find an exact value for your tire using <RadixLink href="bicyclerollingresistance.com/road-bike-reviews">BicycleRollingResistance.com</RadixLink>.
+              Alternatively, you can find an exact value for your tire using <a className="text-primary" href="bicyclerollingresistance.com/road-bike-reviews">BicycleRollingResistance.com</a>.
               Note that the website above reports wattage values at a given velocity and weight. To convert to
               unitless <Code>Crr</Code>, use the formula: <Code>Crr = P / (W * v * g)</Code> where
               <Code>P</Code> is the reported rolling loss in watts, <Code>v</Code> is the velocity of the
@@ -155,7 +154,7 @@ export default function FAQs() {
           <AccordionContent>
             <Flex direction="column" gap="2">
             <Text>
-              For the drivetrain loss presets, I'm using data from Silca's <RadixLink href="https://silca.cc/pages/power-calc">Power Calculator</RadixLink>.
+              For the drivetrain loss presets, I'm using data from Silca's <a className="text-primary" href="https://silca.cc/pages/power-calc">Power Calculator</a>.
               The "Great" value is the based on a 56/16 track setup with hot melt wax. Most triathletes
               will fall in the "Average" (53/13 with dry lube) to "Good" (53/13 with hot melt wax) range.
             </Text>
@@ -263,7 +262,7 @@ export default function FAQs() {
           <AccordionContent>
             <Flex direction="column" gap="2">
               <Text>
-                Once again, I'm using data from Silca's <RadixLink href="https://silca.cc/pages/power-calc">Power Calculator</RadixLink>.
+                Once again, I'm using data from Silca's <a className="text-primary" href="https://silca.cc/pages/power-calc">Power Calculator</a>.
                 They've come up with an equation that relates your <Code>CdA</Code> to your height, weight, and position. I assume
                 this is based on empirical data they've collected.
               </Text>

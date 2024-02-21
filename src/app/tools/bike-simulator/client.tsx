@@ -4,7 +4,7 @@ import { Separator } from "@radix-ui/themes";
 import { useState } from "react";
 import Toolbar from "./toolbar";
 import ResultsDisplay from "./ResultsDisplay";
-import FAQs from "./FAQs";
+import FAQs from "./components/FAQs";
 
 export default function Tool() {
   const [units, setUnits] = useState<"imperial" | "metric">("metric");

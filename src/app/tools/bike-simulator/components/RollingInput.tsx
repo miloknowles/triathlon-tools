@@ -9,9 +9,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { NumberInput } from "@tremor/react";
-import { ToolbarFormType } from "./types";
+import { ToolbarFormType } from "../utils/types";
 
-import { presetsCRR } from "./presets";
+import { presetsCRR } from "../utils/presets";
 import InputIndicator from "./InputIndicator";
 
 
