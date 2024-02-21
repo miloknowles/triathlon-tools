@@ -8,7 +8,7 @@ import {
 } from "@radix-ui/themes";
 import { Link as RadixLink } from "@radix-ui/themes"
 import ChooseCourse from "./ChooseCourse";
-import { COURSES } from "./courses";
+import { COURSES } from "../utils/courses";
 import {
   HoverCard,
   HoverCardContent,
@@ -31,8 +31,8 @@ import { useSWRConfig } from "swr"
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { Badge, NumberInput, Tab, TabGroup, TabList, TabPanel, TabPanels } from "@tremor/react";
-import { presetsCRR, presetsCdA, presetsDtl } from "./presets";
-import { simulate } from "./simulator";
+import { presetsCRR, presetsCdA, presetsDtl } from "../utils/presets";
+import { simulate } from "../utils/simulator";
 import RollingInput from "./RollingInput";
 import LossInput from "./LossInput";
 import CdAInput from "./CdAInput";
@@ -90,9 +90,6 @@ interface IToolbarProps {
 
 
 export default function Toolbar({units, setUnits} : IToolbarProps) {
-  const baseUrl = process.env.NODE_ENV === "production" ?
-    "https://training-tools-plum.vercel.app" :
-    "http://localhost:8000";
   const [loading, setLoading] = useState(false);
 
   const { mutate } = useSWRConfig();

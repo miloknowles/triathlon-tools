@@ -90,11 +90,11 @@ module.exports = {
         "dark-tremor": {
           brand: {
             faint: "#0B1229",
-            muted: colors.indigo[950],
-            subtle: colors.indigo[800],
-            DEFAULT: colors.indigo[500],
-            emphasis: colors.indigo[400],
-            inverted: colors.indigo[950],
+            muted: colors.blue[950],
+            subtle: colors.blue[800],
+            DEFAULT: colors.blue[500],
+            emphasis: colors.blue[400],
+            inverted: colors.blue[950],
           },
           background: {
             muted: "#131A2B",
