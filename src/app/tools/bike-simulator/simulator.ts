@@ -85,7 +85,6 @@ function getRho(y: number, Tk: number, RH: number) {
     Ps = 611 * Math.exp(17.27 * Tc / (Tc + 237.3)); // MPa
   }
 
-  // console.log("Ps:", Ps);
   const rho = 0.0034848 * (pressureAtY - 0.0037960 * RH * Ps) / Tk;
 
   return rho;
@@ -119,8 +118,6 @@ export async function simulate(params: Params) {
   // Use the exact distance of the course file, rather than the assumed race distance.
   const totalDist = data.data.at(-1)?.x || data.meta.totalDistanceMeters;
   const massTotalKg = params.massBikeKg + params.massRiderKg;
-
-  console.log("rho", getRho(0, params.ambientTempCelsius + zeroDegCelsiusInKelvin, params.relativeHumidity / 100));
 
   let iter = 1;
   while (x_t < totalDist) {
