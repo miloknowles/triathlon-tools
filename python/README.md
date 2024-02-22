@@ -2,7 +2,9 @@
 
 This folder contains Python scripts, mainly for extracting and transforming datasets.
 
-## Scraping
+## ETL Scripts
+
+The scripts in `etl` scrape and process the Ironman data.
 
 Most scripts accept a `--t` argument to specify the number of threads.
 
