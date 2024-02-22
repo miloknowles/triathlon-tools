@@ -14,7 +14,7 @@ _lock = Lock() # Lock for writing to the CSV file.
 
 API_KEY = os.getenv("API_KEY")
 if API_KEY is None:
-  print("Please set the API_KEY environment variable before running this script.")
+  print("Please set the `API_KEY` environment variable before running this script.")
 
 
 def crawl(url) -> list[tuple[str, str]]:
@@ -56,7 +56,7 @@ def crawl(url) -> list[tuple[str, str]]:
   return info
 
 
-def process(row: dict, **kwargs):
+def save(row: dict, **kwargs):
   """Process a row of the spreadsheet."""
   name = row[kwargs["name_ix"]]
   series = row[kwargs["series_ix"]]
@@ -88,7 +88,7 @@ def worker(q: Queue, **kwargs):
   """Thread worker function."""
   while not q.empty():
     item = q.get()
-    process(item, **kwargs)
+    save(item, **kwargs)
     q.task_done()
 
 

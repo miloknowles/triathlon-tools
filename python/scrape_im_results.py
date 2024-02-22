@@ -12,10 +12,10 @@ from utils.paths import data_folder, tasks_folder
 
 API_KEY = os.getenv("API_KEY")
 if API_KEY is None:
-  print("Please set the API_KEY environment variable before running this script.")
+  print("Please set the `API_KEY` environment variable before running this script.")
 
 
-def _scrape(
+def scrape_single(
   subevent_id: str,
   sort: str = "FinishRankOverall",
   age_group: None | str = None,
@@ -75,7 +75,7 @@ def scrape(
   data = []
   while True:
     if verbose: print(f"Scraping {skip} to {skip + limit}")
-    results = _scrape(subevent_id, sort=sort, age_group=age_group, skip=skip, limit=limit)
+    results = scrape_single(subevent_id, sort=sort, age_group=age_group, skip=skip, limit=limit)
     # A failed request will return None.
     if results is None:
       return None
@@ -87,7 +87,7 @@ def scrape(
   return dict(total=results["total"], data=data)
 
 
-def download(subevent_id: str):
+def save(subevent_id: str):
   """Downloads the results of a subevent and saves them to a file."""
   data = scrape(subevent_id)
   filepath = data_folder(f"im/{subevent_id}.json")
@@ -100,7 +100,7 @@ def worker(queue: Queue):
   while not queue.empty():
     subevent_id = queue.get()
     print(f"Scraping {subevent_id}")
-    download(subevent_id)
+    save(subevent_id)
     print(f"Finished {subevent_id}")
     queue.task_done()
 
@@ -137,7 +137,4 @@ def main():
 
 
 if __name__ == "__main__":
-  # https://sheets.googleapis.com/v4/spreadsheets/1yLtxUETnuF3UZLmypYkAK6Vj4PE9Fo_BT-WsA4oE_YU/values/Race-Catalog?key=AIzaSyC9s2sNhwUZOUXJfnyt-cD4k4nUyY-3HBs
-  # https://api.competitor.com/public/events/33C67F48-BA3C-472C-B696-2D8CAD67B46E
-  # https://docs.google.com/spreadsheets/d/1yLtxUETnuF3UZLmypYkAK6Vj4PE9Fo_BT-WsA4oE_YU/edit#gid=440730663
   main()
