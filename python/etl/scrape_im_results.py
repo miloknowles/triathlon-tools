@@ -12,7 +12,7 @@ from utils.paths import data_folder, tasks_folder
 
 API_KEY = os.getenv("API_KEY")
 if API_KEY is None:
-  print("Please set the `API_KEY` environment variable before running this script.")
+  raise EnvironmentError('Please set the `API_KEY` environment variable before running this script.')
 
 
 def scrape_single(

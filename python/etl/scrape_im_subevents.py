@@ -14,7 +14,7 @@ _lock = Lock() # Lock for writing to the CSV file.
 
 API_KEY = os.getenv("API_KEY")
 if API_KEY is None:
-  print("Please set the `API_KEY` environment variable before running this script.")
+  raise EnvironmentError('Please set the `API_KEY` environment variable before running this script.')
 
 
 def crawl(url) -> list[tuple[str, str]]:
@@ -56,16 +56,17 @@ def crawl(url) -> list[tuple[str, str]]:
   return info
 
 
-def save(row: dict, **kwargs):
+def save(row: dict):
   """Process a row of the spreadsheet."""
-  name = row[kwargs["name_ix"]]
-  series = row[kwargs["series_ix"]]
-  results_url = f"{row[kwargs["url_ix"]]}-results"
+  name = row["name"]
+  series = row["series"]
+  results_url = row["results_url"]
 
   subevent_info = crawl(results_url)
 
   df = dict(subevent_id=[], results_url=[], name=[], series=[], year=[])
 
+  # Make a small dataframe with the info about each year's event.
   for (id, year) in subevent_info:
     print(id, year)
     df["subevent_id"].append(id)
@@ -75,20 +76,26 @@ def save(row: dict, **kwargs):
     df["year"].append(int(year))
 
   _lock.acquire()
+
+  # If the file already exists, we need to merge the new data with the old data.
   if os.path.exists(tasks_folder("im/subevents.csv")):
-    existing = pd.read_csv(tasks_folder("im/subevents.csv"), index_col="subevent_id")
+    existing = pd.read_csv(
+      tasks_folder("im/subevents.csv"),
+      index_col="subevent_id"
+    )
     merged = pd.concat([existing, pd.DataFrame(df).set_index("subevent_id")]).drop_duplicates()
   else:
     merged = pd.DataFrame(df).set_index("subevent_id")
   merged.to_csv(tasks_folder("im/subevents.csv"), index=True)
+
   _lock.release()
 
 
-def worker(q: Queue, **kwargs):
+def worker(q: Queue):
   """Thread worker function."""
   while not q.empty():
     item = q.get()
-    save(item, **kwargs)
+    save(item)
     q.task_done()
 
 
@@ -104,33 +111,20 @@ def main():
   parser.add_argument("--t", type=int, default=4)
   args = parser.parse_args()
 
-  base_url = "https://sheets.googleapis.com/v4/spreadsheets/1yLtxUETnuF3UZLmypYkAK6Vj4PE9Fo_BT-WsA4oE_YU/values/Race-Catalog?key=AIzaSyC9s2sNhwUZOUXJfnyt-cD4k4nUyY-3HBs"
-
-  print("Fetching data from Google Sheets...")
-  print(base_url)
-
-  data = requests.get(base_url).json()["values"]
-  header = data[0]
-  data = data[1:]
-
-  print("HEADER:")
-  print(header)
-
-  name_ix: int = header.index("Title \nIRONMAN/IRONMAN 70.3 will be appended")
-  series_ix: int = header.index('Brand/Series/Distance')
-  url_ix: int = header.index("Race Event Page Link")
+  # Load in all of the races. For each race, we'll find all of the subevents,
+  # which correspond to a year that the race was held.
+  df = pd.read_csv(tasks_folder("im/races.csv"))
 
   # Add all of the events to the queue.
   q = Queue()
-  for i in range(len(data)):
-    q.put(data[i])
+  for i in range(len(df)):
+    q.put(df.iloc[i].to_dict())
 
   # Start the threads.
   for _ in range(args.t):
     t = Thread(
       target=worker,
       args=(q,),
-      kwargs=dict(name_ix=name_ix, series_ix=series_ix, url_ix=url_ix)
     )
     t.start()
   
