@@ -24,8 +24,10 @@ def scrape_single(
 ) -> dict | None:
   """Scrapes the Competitor API for the results of a subevent.
 
-  The URLs look like:
+  Example URL:
+  ```text
   https://api.competitor.com/public/result/subevent/1C0CAFFB-36CF-46F6-8F67-C1E7F7F428B8?%24limit=100&%24skip=0&%24sort%5BFinishRankOverall%5D=1&AgeGroup=M25-29
+  ```
   
   Parameters
   ----------
@@ -36,9 +38,10 @@ def scrape_single(
   skip : int, optional
     The cursor into the results, by default 0. Use this to paginate the results.
   sort : str, optional
-    The field to sort the results by, by default "FinishRankOverall"
+    The field to sort the results by, by default "FinishRankOverall". Not sure
+    what other fields are available.
   age_group : str, optional
-    The age group to filter the results by, by default "M25-29"
+    The age group to filter the results by, for example "M25-29"
   
   Returns
   -------
@@ -67,17 +70,7 @@ def scrape_paginated(
   limit: int = 100,
   verbose: bool = False,
 ) -> dict | None:
-  """Scrapes all the results for a subevent.
-
-  Parameters
-  ----------
-  subevent_id : str
-    The ID of the subevent to scrape.
-
-  Returns
-  -------
-  The results of the scrape, or None if the request failed.
-  """
+  """Scrapes all the results for a subevent."""
   skip = 0
   data = []
   while True:
@@ -116,7 +109,7 @@ def main():
   """Scrapes all the subevents in the `im/subevents.csv` file."""
   from argparse import ArgumentParser
   parser = ArgumentParser()
-  parser.add_argument("--nthreads", type=int, default=4)
+  parser.add_argument("--t", type=int, default=4)
   args = parser.parse_args()
 
   task_queue = Queue()
@@ -132,9 +125,9 @@ def main():
     if subevent_id not in scraped:
       task_queue.put(subevent_id)
 
-  print(f"Added {task_queue.qsize()} outstanding subevents to the queue. Will process with {args.nthreads} threads.")
+  print(f"Added {task_queue.qsize()} outstanding subevents to the queue. Will process with {args.t} threads.")
 
-  for _ in range(args.nthreads):
+  for _ in range(args.t):
     t = Thread(target=worker, args=(task_queue,))
     t.start()
 
@@ -145,9 +138,3 @@ def main():
 
 if __name__ == "__main__":
   main()
-  # subevent_id = "1C0CAFFB-36CF-46F6-8F67-C1E7F7F428B8"
-  # data = scrape_paginated(subevent_id)
-  # filepath = data_folder(f"im/{subevent_id}.json")
-  # with open(filepath, "w") as file:
-  #   json.dump(data, file, indent=2)
-  # print(f"Scraped {len(data["data"])} results to {filepath}")
