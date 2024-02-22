@@ -6,6 +6,8 @@ name = "pypi"
 [packages]
 pandas = "*"
 pyarrow = "*"
+requests = "*"
+beautifulsoup4 = "*"
 
 [dev-packages]
 
