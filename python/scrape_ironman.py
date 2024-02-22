@@ -15,7 +15,7 @@ if API_KEY is None:
   print("Please set the API_KEY environment variable before running this script.")
 
 
-def scrape_single(
+def _scrape(
   subevent_id: str,
   sort: str = "FinishRankOverall",
   age_group: None | str = None,
@@ -63,19 +63,19 @@ def scrape_single(
     return None
 
 
-def scrape_paginated(
+def scrape(
   subevent_id: str,
   sort: str = "FinishRankOverall",
   age_group: None | str = None,
   limit: int = 100,
   verbose: bool = False,
 ) -> dict | None:
-  """Scrapes all the results for a subevent."""
+  """Scrapes all the results for a subevent by paginating."""
   skip = 0
   data = []
   while True:
     if verbose: print(f"Scraping {skip} to {skip + limit}")
-    results = scrape_single(subevent_id, sort=sort, age_group=age_group, skip=skip, limit=limit)
+    results = _scrape(subevent_id, sort=sort, age_group=age_group, skip=skip, limit=limit)
     # A failed request will return None.
     if results is None:
       return None
@@ -89,7 +89,7 @@ def scrape_paginated(
 
 def download(subevent_id: str):
   """Downloads the results of a subevent and saves them to a file."""
-  data = scrape_paginated(subevent_id)
+  data = scrape(subevent_id)
   filepath = data_folder(f"im/{subevent_id}.json")
   with open(filepath, "w") as file:
     json.dump(data, file, indent=2)
@@ -137,4 +137,7 @@ def main():
 
 
 if __name__ == "__main__":
+  # https://sheets.googleapis.com/v4/spreadsheets/1yLtxUETnuF3UZLmypYkAK6Vj4PE9Fo_BT-WsA4oE_YU/values/Race-Catalog?key=AIzaSyC9s2sNhwUZOUXJfnyt-cD4k4nUyY-3HBs
+  # https://api.competitor.com/public/events/33C67F48-BA3C-472C-B696-2D8CAD67B46E
+  # https://docs.google.com/spreadsheets/d/1yLtxUETnuF3UZLmypYkAK6Vj4PE9Fo_BT-WsA4oE_YU/edit#gid=440730663
   main()

@@ -1,2 +1,130 @@
-subevent_id,name,year
-811402C9-91A1-4EBB-B102-E083A44876E7,Ironman Florida,2023
+subevent_id,results_url,name,series,year
+27AC828C-2A12-4FD9-B98C-0CEBEE4DB1D7,https://www.ironman.com/im703-durban-results,Durban,IRONMAN-70.3,2023
+2EA4851D-7889-48B0-BF45-677767F0C411,https://www.ironman.com/im703-durban-results,Durban,IRONMAN-70.3,2022
+AFBBBB93-964B-4297-8B3A-68D6B61A361F,https://www.ironman.com/im703-durban-results,Durban,IRONMAN-70.3,2021
+8535D9BB-87D7-E811-A968-000D3A37468C,https://www.ironman.com/im703-durban-results,Durban,IRONMAN-70.3,2019
+7F2ABFA8-73A7-E711-9419-005056951BF1,https://www.ironman.com/im703-durban-results,Durban,IRONMAN-70.3,2018
+6CCA5CA6-3448-E611-940F-005056951BF1,https://www.ironman.com/im703-durban-results,Durban,IRONMAN-70.3,2017
+321103E6-D8BA-E511-940C-005056951BF1,https://www.ironman.com/im703-durban-results,Durban,IRONMAN-70.3,2016
+8CF50287-9AB0-E411-9400-005056951BF1,https://www.ironman.com/im703-durban-results,Durban,IRONMAN-70.3,2015
+DD8A87B8-273B-4798-9C1A-3B30FA0464FA,https://www.ironman.com/im703-astana-results,Astana,IRONMAN-70.3,2023
+20523B84-CB80-4E33-A945-F0FCD1E45A3A,https://www.ironman.com/im703-astana-results,Astana,IRONMAN-70.3,2022
+D4A86E0D-C489-E811-941F-005056951BF1,https://www.ironman.com/im703-astana-results,Astana,IRONMAN-70.3,2019
+B69DDA05-5CA4-E711-9419-005056951BF1,https://www.ironman.com/im703-astana-results,Astana,IRONMAN-70.3,2018
+EF62CF84-1D0E-42E6-9155-87D341C1FB39,https://www.ironman.com/im703-bahrain-results,Middle East Championship Bahrain,IRONMAN-70.3,2023
+2CC3F721-C8BB-4238-9968-D1AD116F5511,https://www.ironman.com/im703-bahrain-results,Middle East Championship Bahrain,IRONMAN-70.3,2022
+757D3BF1-2073-E911-A97E-000D3A35F53A,https://www.ironman.com/im703-bahrain-results,Middle East Championship Bahrain,IRONMAN-70.3,2019
+69988CDE-5D6A-E811-941F-005056951BF1,https://www.ironman.com/im703-bahrain-results,Middle East Championship Bahrain,IRONMAN-70.3,2018
+49822772-42E3-E611-9414-005056951BF1,https://www.ironman.com/im703-bahrain-results,Middle East Championship Bahrain,IRONMAN-70.3,2017
+C20EC7D0-D2BA-E511-940C-005056951BF1,https://www.ironman.com/im703-bahrain-results,Middle East Championship Bahrain,IRONMAN-70.3,2016
+660190D0-BA16-E511-9402-005056951BF1,https://www.ironman.com/im703-bahrain-results,Middle East Championship Bahrain,IRONMAN-70.3,2015
+0EADECD6-005E-45AD-A8BE-6011210040E2,https://ironman.com/im703-bangsaen-results,"Bangsaen, Thailand",IRONMAN-70.3,2024
+8DFA084E-A5B7-E911-A986-000D3A364086,https://ironman.com/im703-bangsaen-results,"Bangsaen, Thailand",IRONMAN-70.3,2020
+DAD1ECEB-4481-E811-941F-005056951BF1,https://ironman.com/im703-bangsaen-results,"Bangsaen, Thailand",IRONMAN-70.3,2019
+66B61F2F-A12A-4AC1-9CF6-A564C43A5D1C,https://ironman.com/im703-davao-philippines-results,Davao Philippines,IRONMAN-70.3,2023
+4F6AA25E-F4C0-E811-A96D-000D3A364086,https://ironman.com/im703-davao-philippines-results,Davao Philippines,IRONMAN-70.3,2019
+21280A3D-5BA4-E711-9419-005056951BF1,https://ironman.com/im703-davao-philippines-results,Davao Philippines,IRONMAN-70.3,2018
+AEBBF326-0EE8-4A0B-8DB2-D5186DC9C835,https://ironman.com/im703-desaru-coast-results,Desaru Coast,IRONMAN-70.3,2023
+644EB8FB-47B9-4E52-BFAE-9012E9EC9A80,https://ironman.com/im703-desaru-coast-results,Desaru Coast,IRONMAN-70.3,2022
+48522FF0-7F8B-4937-9B6A-6048482FBA7C,https://www.ironman.com/im703-dubai-results,Dubai,IRONMAN-70.3,2022
+37667224-8475-49E1-9EBB-AC55D1BE056E,https://www.ironman.com/im703-dubai-results,Dubai,IRONMAN-70.3,2021
+CA2730A5-1AFB-E911-A812-000D3A5A1477,https://www.ironman.com/im703-dubai-results,Dubai,IRONMAN-70.3,2020
+996552D8-0BC7-E811-A96A-000D3A35F53A,https://www.ironman.com/im703-dubai-results,Dubai,IRONMAN-70.3,2019
+66E76729-FBAC-E711-9419-005056951BF1,https://www.ironman.com/im703-dubai-results,Dubai,IRONMAN-70.3,2018
+414EDD55-BA08-E611-940D-005056951BF1,https://www.ironman.com/im703-dubai-results,Dubai,IRONMAN-70.3,2017
+AD890D50-4FA3-E511-940C-005056951BF1,https://www.ironman.com/im703-dubai-results,Dubai,IRONMAN-70.3,2016
+A9E26E6A-2F4F-410B-B3C8-B96E2D2A3130,https://ironman.com/im703-goa-results,Goa,IRONMAN-70.3,2023
+C2B8DBC9-FDF9-422C-A147-D976146F1902,https://ironman.com/im703-goa-results,Goa,IRONMAN-70.3,2022
+7284CEBD-4CFD-E811-A968-000D3A3749BC,https://ironman.com/im703-goa-results,Goa,IRONMAN-70.3,2019
+8B384579-D96D-4B49-BB63-6DDFCC0E8912,https://ironman.com/im703-goseong-results,Goseong,IRONMAN-70.3,2023
+A857B6F0-D139-410F-B3FF-82C2570BE69B,https://ironman.com/im703-goseong-results,Goseong,IRONMAN-70.3,2022
+084D5371-FECA-E811-A96A-000D3A35F53A,https://ironman.com/im703-goseong-results,Goseong,IRONMAN-70.3,2019
+31942FA7-0A03-48E7-BCFF-C84B09392BBF,https://ironman.com/im703-langkawi-results,Langkawi,IRONMAN-70.3,2023
+CDF215AB-D02B-4B17-98F2-2E6676C2715E,https://ironman.com/im703-langkawi-results,Langkawi,IRONMAN-70.3,2022
+DEAB62F2-5D3B-E911-A96D-000D3A3740B7,https://ironman.com/im703-langkawi-results,Langkawi,IRONMAN-70.3,2019
+DA6F00A9-D84F-E811-941E-005056951BF1,https://ironman.com/im703-langkawi-results,Langkawi,IRONMAN-70.3,2018
+753A08AB-360B-E711-9414-005056951BF1,https://ironman.com/im703-langkawi-results,Langkawi,IRONMAN-70.3,2017
+B2A05476-7086-4C2C-AC05-EE6568A7309C,https://www.ironman.com/im703-japan-results,Japan,IRONMAN-70.3,2023
+693A00F1-7CE6-E811-A969-000D3A37468C,https://www.ironman.com/im703-japan-results,Japan,IRONMAN-70.3,2019
+B26B4020-F9C3-E711-941B-005056951BF1,https://www.ironman.com/im703-japan-results,Japan,IRONMAN-70.3,2018
+2CC19A9F-A5C5-E611-9411-005056951BF1,https://www.ironman.com/im703-japan-results,Japan,IRONMAN-70.3,2017
+DDD8F560-B4EA-E511-940C-005056951BF1,https://www.ironman.com/im703-japan-results,Japan,IRONMAN-70.3,2016
+65CE3764-E0F3-4F68-9EF8-9810CF738781,https://www.ironman.com/im703-japan-results,Japan,IRONMAN-70.3,2015
+F94852B5-7A15-E311-9EC7-005056956277,https://www.ironman.com/im703-japan-results,Japan,IRONMAN-70.3,2014
+E6616994-3055-E211-B7A2-005056956277,https://www.ironman.com/im703-japan-results,Japan,IRONMAN-70.3,2013
+B717D0B1-4EAE-E111-80AE-005056956277,https://www.ironman.com/im703-japan-results,Japan,IRONMAN-70.3,2012
+A501DC86-866F-4B5E-8315-ACC33C1ECB34,https://www.ironman.com/im703-oman-results,Oman,IRONMAN-70.3,2024
+C200EDB9-C575-41CA-8ADE-297433B8FE11,https://www.ironman.com/im703-oman-results,Oman,IRONMAN-70.3,2023
+C14C594A-A71D-4AB9-BDDB-E273C429C824,https://www.ironman.com/im703-oman-results,Oman,IRONMAN-70.3,2022
+6F4C381E-8C66-E911-A97A-000D3A36478D,https://www.ironman.com/im703-oman-results,Oman,IRONMAN-70.3,2020
+1F35BEB2-0895-E811-9421-005056951BF1,https://www.ironman.com/im703-oman-results,Oman,IRONMAN-70.3,2019
+52AEAD93-97A4-4674-9BA0-25E84698EBFB,https://ironman.com/im703-subic-bay-philippines-results,Subic Bay,IRONMAN-70.3,2023
+20CFE66C-5740-432A-89FA-62098B9C1E52,https://ironman.com/im703-subic-bay-philippines-results,Subic Bay,IRONMAN-70.3,2022
+0AF5E6B4-39BB-E811-A967-000D3A37468C,https://ironman.com/im703-subic-bay-philippines-results,Subic Bay,IRONMAN-70.3,2019
+9AE1F88B-1EF6-E711-941C-005056951BF1,https://ironman.com/im703-subic-bay-philippines-results,Subic Bay,IRONMAN-70.3,2018
+AA61825F-6B86-E611-9410-005056951BF1,https://ironman.com/im703-subic-bay-philippines-results,Subic Bay,IRONMAN-70.3,2017
+ACFA085F-2969-E511-9409-005056951BF1,https://ironman.com/im703-subic-bay-philippines-results,Subic Bay,IRONMAN-70.3,2016
+E7600891-A2BE-E411-9400-005056951BF1,https://ironman.com/im703-subic-bay-philippines-results,Subic Bay,IRONMAN-70.3,2015
+5CA0D730-C4A2-4432-9225-D956EA545EAC,https://www.ironman.com/im703-turkey-results,Türkiye,IRONMAN-70.3,2023
+CD87739B-129D-4D8E-A733-2B132D487FA4,https://www.ironman.com/im703-turkey-results,Türkiye,IRONMAN-70.3,2022
+06CFBE49-A6F1-4901-B4C7-1B7C4508B93F,https://www.ironman.com/im703-turkey-results,Türkiye,IRONMAN-70.3,2021
+6790952F-5831-EA11-A810-000D3A5A1477,https://www.ironman.com/im703-turkey-results,Türkiye,IRONMAN-70.3,2020
+86497C81-8D2F-E911-A970-000D3A37468C,https://www.ironman.com/im703-turkey-results,Türkiye,IRONMAN-70.3,2019
+34E055B2-5117-E811-941D-005056951BF1,https://www.ironman.com/im703-turkey-results,Türkiye,IRONMAN-70.3,2018
+FF3ED31A-C7D3-E611-9412-005056951BF1,https://www.ironman.com/im703-turkey-results,Türkiye,IRONMAN-70.3,2017
+D1AD99B8-2083-E511-9409-005056951BF1,https://www.ironman.com/im703-turkey-results,Türkiye,IRONMAN-70.3,2016
+0BD942C4-C15E-E411-93FA-005056951BF1,https://www.ironman.com/im703-turkey-results,Türkiye,IRONMAN-70.3,2015
+B69D77C6-8FDA-41E3-9EC9-B73D922B75A0,https://ironman.com/im703-vietnam-results,Viet Nam,IRONMAN-70.3,2023
+4C083840-3AD5-4035-9B15-B60ADBD06263,https://ironman.com/im703-vietnam-results,Viet Nam,IRONMAN-70.3,2022
+088DF2FA-9EA7-E811-A961-000D3A3740B7,https://ironman.com/im703-vietnam-results,Viet Nam,IRONMAN-70.3,2019
+B2A4D90E-E48C-E711-9419-005056951BF1,https://ironman.com/im703-vietnam-results,Viet Nam,IRONMAN-70.3,2018
+55B1CA34-136E-E611-940F-005056951BF1,https://ironman.com/im703-vietnam-results,Viet Nam,IRONMAN-70.3,2017
+AB503AC8-C557-E511-9409-005056951BF1,https://ironman.com/im703-vietnam-results,Viet Nam,IRONMAN-70.3,2016
+84B91ECB-06B2-E411-9400-005056951BF1,https://ironman.com/im703-vietnam-results,Viet Nam,IRONMAN-70.3,2015
+6C806AA2-4A52-4C7C-BE7C-8E331759347A,https://www.ironman.com/im703-aix-en-provence-results,Aix-en-Provence,IRONMAN-70.3,2023
+F3092057-1F84-447C-A909-2ABF4C229445,https://www.ironman.com/im703-aix-en-provence-results,Aix-en-Provence,IRONMAN-70.3,2022
+057DB37C-7E98-42F6-8086-F813EDBE7F3A,https://www.ironman.com/im703-aix-en-provence-results,Aix-en-Provence,IRONMAN-70.3,2021
+4F9CF450-CE89-E811-941F-005056951BF1,https://www.ironman.com/im703-aix-en-provence-results,Aix-en-Provence,IRONMAN-70.3,2019
+A06AF767-C26B-E711-9418-005056951BF1,https://www.ironman.com/im703-aix-en-provence-results,Aix-en-Provence,IRONMAN-70.3,2018
+F8ABDD9D-1837-E611-940F-005056951BF1,https://www.ironman.com/im703-aix-en-provence-results,Aix-en-Provence,IRONMAN-70.3,2017
+91FBD7D9-7C25-E511-9403-005056951BF1,https://www.ironman.com/im703-aix-en-provence-results,Aix-en-Provence,IRONMAN-70.3,2016
+289A6A18-EC03-4B79-8CD3-AD609D98E2AF,https://www.ironman.com/im703-aix-en-provence-results,Aix-en-Provence,IRONMAN-70.3,2015
+064952B5-7A15-E311-9EC7-005056956277,https://www.ironman.com/im703-aix-en-provence-results,Aix-en-Provence,IRONMAN-70.3,2014
+566D3149-DA1E-4842-ABBB-2B95DAE023CF,https://www.ironman.com/im703-mallorca-results,Alcúdia-Mallorca,IRONMAN-70.3,2023
+F29EFE58-05B8-4106-9C17-704FC2D80208,https://www.ironman.com/im703-mallorca-results,Alcúdia-Mallorca,IRONMAN-70.3,2022
+A4B881A1-B04A-4D83-9427-65D23F53777D,https://www.ironman.com/im703-mallorca-results,Alcúdia-Mallorca,IRONMAN-70.3,2021
+7A74A065-C889-E811-941F-005056951BF1,https://www.ironman.com/im703-mallorca-results,Alcúdia-Mallorca,IRONMAN-70.3,2019
+DF4E2F37-066B-E711-9418-005056951BF1,https://www.ironman.com/im703-mallorca-results,Alcúdia-Mallorca,IRONMAN-70.3,2018
+520B5196-473A-E611-940F-005056951BF1,https://www.ironman.com/im703-mallorca-results,Alcúdia-Mallorca,IRONMAN-70.3,2017
+2F990751-BF20-E511-9403-005056951BF1,https://www.ironman.com/im703-mallorca-results,Alcúdia-Mallorca,IRONMAN-70.3,2016
+450694E4-8C1A-40F2-A270-3C04B86F8C2B,https://www.ironman.com/im703-cascais-results,Portugal - Cascais,IRONMAN-70.3,2023
+4CB72055-DA4F-43BB-B8AE-9CBB85435275,https://www.ironman.com/im703-cascais-results,Portugal - Cascais,IRONMAN-70.3,2022
+2854A8AA-E5AD-4F13-9446-E643DE7AEA38,https://www.ironman.com/im703-cascais-results,Portugal - Cascais,IRONMAN-70.3,2021
+F72E4AC1-EEC0-E811-A96D-000D3A364086,https://www.ironman.com/im703-cascais-results,Portugal - Cascais,IRONMAN-70.3,2019
+216636F4-F6AC-E711-9419-005056951BF1,https://www.ironman.com/im703-cascais-results,Portugal - Cascais,IRONMAN-70.3,2018
+03518388-3680-E611-9410-005056951BF1,https://www.ironman.com/im703-cascais-results,Portugal - Cascais,IRONMAN-70.3,2017
+CF562F20-DE52-4612-AD57-230810C293AD,https://www.ironman.com/im703-elsinore-results,Elsinore,IRONMAN-70.3,2023
+C9E159DB-5F88-4CFF-AC20-A06E4A8F8EA5,https://www.ironman.com/im703-elsinore-results,Elsinore,IRONMAN-70.3,2022
+C690A6D3-E15D-4199-9356-8931C3FBFB5C,https://www.ironman.com/im703-elsinore-results,Elsinore,IRONMAN-70.3,2021
+186AD0BC-33A2-E811-A960-000D3A3740B7,https://www.ironman.com/im703-elsinore-results,Elsinore,IRONMAN-70.3,2019
+DAA6203F-CB61-E711-9418-005056951BF1,https://www.ironman.com/im703-elsinore-results,Elsinore,IRONMAN-70.3,2018
+EAB3BC66-BC6B-E611-940F-005056951BF1,https://www.ironman.com/im703-elsinore-results,Elsinore,IRONMAN-70.3,2017
+6E3552E2-F24F-E511-9409-005056951BF1,https://www.ironman.com/im703-elsinore-results,Elsinore,IRONMAN-70.3,2016
+809C5382-4F61-449C-AB87-854FC7442335,https://www.ironman.com/im703-elsinore-results,Elsinore,IRONMAN-70.3,2015
+52C55C11-57A5-E311-B5F4-005056956277,https://www.ironman.com/im703-elsinore-results,Elsinore,IRONMAN-70.3,2014
+5C260A2C-6B8B-4335-B01A-9BE622B5DD70,https://www.ironman.com/im703-finland-results,Lahti,IRONMAN-70.3,2023
+58D9F70C-D6F1-4A3E-8DD8-1BBBD5276BA2,https://www.ironman.com/im703-finland-results,Lahti,IRONMAN-70.3,2022
+98B25226-2E33-42AB-A1A7-7B902F9171C7,https://www.ironman.com/im703-finland-results,Lahti,IRONMAN-70.3,2021
+E13482B5-C689-E811-941F-005056951BF1,https://www.ironman.com/im703-finland-results,Lahti,IRONMAN-70.3,2019
+4FC50F06-7145-E711-9417-005056951BF1,https://www.ironman.com/im703-finland-results,Lahti,IRONMAN-70.3,2018
+21C12965-FA60-48B8-84FC-308399944AC0,https://www.ironman.com/im703-gdynia-results,Gdynia,IRONMAN-70.3,2023
+3EEB4DA2-B363-419F-B080-201D51A9AECA,https://www.ironman.com/im703-gdynia-results,Gdynia,IRONMAN-70.3,2022
+B2B3F65F-EB92-41A5-995B-50201A96437E,https://www.ironman.com/im703-gdynia-results,Gdynia,IRONMAN-70.3,2021
+85D74B2F-241C-EA11-A811-000D3A5A1CF8,https://www.ironman.com/im703-gdynia-results,Gdynia,IRONMAN-70.3,2020
+E93F6A00-06B1-E811-A96C-000D3A364086,https://www.ironman.com/im703-gdynia-results,Gdynia,IRONMAN-70.3,2019
+B701EDEA-4FF1-E711-941C-005056951BF1,https://www.ironman.com/im703-gdynia-results,Gdynia,IRONMAN-70.3,2018
+B870E801-0AC2-E611-9410-005056951BF1,https://www.ironman.com/im703-gdynia-results,Gdynia,IRONMAN-70.3,2017
+216A9127-DABA-E511-940C-005056951BF1,https://www.ironman.com/im703-gdynia-results,Gdynia,IRONMAN-70.3,2016
+413BDFC3-3E7A-E411-93FC-005056951BF1,https://www.ironman.com/im703-gdynia-results,Gdynia,IRONMAN-70.3,2015
+0E2029FA-6827-4B28-A5D9-4B23A6676DEF,https://www.ironman.com/im703-vouliagmeni-results,"Vouliagmeni, Greece",IRONMAN-70.3,2023
+D604190B-DBC8-463A-8181-58013A8ED7C4,https://www.ironman.com/im703-vouliagmeni-results,"Vouliagmeni, Greece",IRONMAN-70.3,2022
