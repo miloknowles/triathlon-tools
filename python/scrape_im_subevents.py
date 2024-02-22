@@ -72,7 +72,7 @@ def save(row: dict, **kwargs):
     df["results_url"].append(results_url) 
     df["name"].append(name)
     df["series"].append(series)
-    df["year"].append(year)
+    df["year"].append(int(year))
 
   _lock.acquire()
   if os.path.exists(tasks_folder("im/subevents.csv")):

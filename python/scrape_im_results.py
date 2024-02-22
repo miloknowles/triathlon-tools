@@ -90,7 +90,7 @@ def scrape(
 def save(subevent_id: str):
   """Downloads the results of a subevent and saves them to a file."""
   data = scrape(subevent_id)
-  filepath = data_folder(f"im/{subevent_id}.json")
+  filepath = data_folder(f"im/json/{subevent_id}.json")
   with open(filepath, "w") as file:
     json.dump(data, file, indent=2)
 
