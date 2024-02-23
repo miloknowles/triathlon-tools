@@ -5,11 +5,10 @@ import requests
 import pandas as pd
 import os
 
-from queue import Queue
 from threading import Lock
-from threading import Thread
 
 from utils.paths import tasks_folder
+from job import Job, JobStatus, await_pooled_jobs
 
 _lock = Lock() # Lock for writing to the CSV file.
 
@@ -28,6 +27,9 @@ def crawl(url) -> list[tuple[str, str]]:
   """
   r = requests.get(url)
 
+  if r.status_code != 200:
+    raise ValueError(f"{url} responded with status code {r.status_code}.")
+
   # First, we look for all of the "tab-remote" objects, which point to the results
   # for a given year. These will have a relative URL like:
   # /layout_container/show_layout_tab?layout_container_id=100774644&page_node_id=6280763&tab_element_id=303164
@@ -35,6 +37,9 @@ def crawl(url) -> list[tuple[str, str]]:
   soup = BeautifulSoup(r.text, "html.parser")
   for a in soup.find_all("a", class_="tab-remote"):
     subevent_urls.append(f'https://www.ironman.com{a["href"]}')
+
+  if len(subevent_urls) == 0:
+    raise ValueError(f"No subevent URLs found on {url}. Check this page manually to see what's going on.")
 
   # Next, we visit each subevent URL and extract the subevent ID from the <iframe> that is loaded.
   info = []
@@ -55,10 +60,13 @@ def crawl(url) -> list[tuple[str, str]]:
 
       info.append((iframe["src"].split("/")[-1], year))
 
+  if len(info) == 0:
+    raise ValueError(f"No subevent IDs could be parsed from {url}. Check this page manually to see what's going on.")
+
   return info
 
 
-def save(row: dict):
+def pipeline(row: dict):
   """Process a row of the spreadsheet."""
   name = row["name"]
   series = row["series"]
@@ -85,7 +93,6 @@ def save(row: dict):
       tasks_folder("im/subevents.csv"),
       index_col="subevent_id"
     )
-    print(df)
     merged = pd.concat([existing, pd.DataFrame(df).set_index("subevent_id")]).drop_duplicates()
   else:
     merged = pd.DataFrame(df).set_index("subevent_id")
@@ -96,21 +103,8 @@ def save(row: dict):
   _lock.release()
 
 
-def worker(q: Queue):
-  """Thread worker function."""
-  while not q.empty():
-    item = q.get()
-    save(item)
-    q.task_done()
-
-
 def main():
-  """Scrape information about active races from the Ironman spreadsheet.
-
-  Yes... they do keep everything in one big spreadsheet.
-
-  https://docs.google.com/spreadsheets/d/1yLtxUETnuF3UZLmypYkAK6Vj4PE9Fo_BT-WsA4oE_YU/edit#gid=440730663
-  """
+  """For each Ironman race, find the subevent ID for each year that the race is held."""
   from argparse import ArgumentParser
   parser = ArgumentParser()
   parser.add_argument("--t", type=int, default=4, help="The number of threads to use")
@@ -120,34 +114,27 @@ def main():
   # Load in all of the races. For each race, we'll find all of the subevents,
   # which correspond to a year that the race was held.
   df = pd.read_csv(tasks_folder("im/races.csv"))
-  already_scraped_races = set(pd.read_csv(tasks_folder("im/subevents.csv")).name.unique().tolist())
+  done = set(pd.read_csv(tasks_folder("im/subevents.csv")).name.unique().tolist())
+
+  print(f"Found {len(done)} races that we've already scraped subevents for. If you want to skip these, use the --skip-existing flag.")
+
+  if args.skip_existing:
+    print(f"Note: The --skip-existing flag is set, so we won't process any races that have already been scraped.")
 
   # Add all of the events to the queue.
-  q = Queue()
-  for i in range(len(df)):
-    row = df.iloc[i]
-    print(row['name'])
+  todo = df[~df["name"].isin(done)] if args.skip_existing else df
 
-    if args.skip_existing and row["name"] in already_scraped_races:
-      print(f"Skipping {row['name']} because it has already been scraped and --skip-existing was passed.")
-      continue
+  print(f"Will scrape subevent IDs for {len(todo)} remaining races.")
 
-    q.put(row.to_dict())
+  jobs = [Job(pipeline, args=(row.to_dict(),)) for _, row in todo.iterrows()]
+  results = await_pooled_jobs(jobs, t=args.t)
 
-  # Start the threads.
-  for _ in range(args.t):
-    t = Thread(
-      target=worker,
-      args=(q,),
-    )
-    t.start()
-  
-  # Wait for all the threads to finish.
-  q.join()
+  for r in results:
+    if r.status != JobStatus.FULFILLED:
+      print(f"Job (args={r.args}) failed with exception: {r.reason}.")
 
   print("DONE")
 
 
 if __name__ == "__main__":
-  """Gather all of the subevent IDs for IRONMAN events."""
   main()
