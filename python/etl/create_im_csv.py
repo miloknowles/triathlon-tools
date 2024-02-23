@@ -1,3 +1,5 @@
+import sys; sys.path.extend([".", "..", "../.."])
+
 import glob
 import json
 import pandas as pd

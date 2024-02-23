@@ -1,3 +1,5 @@
+import sys; sys.path.extend([".", "..", "../.."])
+
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
@@ -32,9 +34,9 @@ def update_from_google_sheets():
   df = pd.read_csv(tasks_folder("im/races.csv"), index_col="name")
 
   for row in data:
-    name = row[name_ix]
+    name = row[name_ix].replace(" ", "")
     series = row[series_ix]
-    url = row[url_ix] + '-results'
+    url = row[url_ix].replace(" ", "") + '-results'
 
     # Update if this name doesn't exist.
     if name not in df.index:

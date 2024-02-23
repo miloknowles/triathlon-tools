@@ -1,3 +1,5 @@
+import sys; sys.path.extend([".", "..", "../.."])
+
 from bs4 import BeautifulSoup
 import requests
 import pandas as pd
@@ -37,7 +39,7 @@ def crawl(url) -> list[tuple[str, str]]:
   # Next, we visit each subevent URL and extract the subevent ID from the <iframe> that is loaded.
   info = []
   for url in subevent_urls:
-    r = requests.get(url)
+    r = requests.get(url, timeout=10)
     soup = BeautifulSoup(r.text, "html.parser")
 
     iframe = soup.find("iframe")
@@ -62,13 +64,13 @@ def save(row: dict):
   series = row["series"]
   results_url = row["results_url"]
 
+  print("Processing", name, series, results_url)
   subevent_info = crawl(results_url)
 
   df = dict(subevent_id=[], results_url=[], name=[], series=[], year=[])
 
   # Make a small dataframe with the info about each year's event.
   for (id, year) in subevent_info:
-    print(id, year)
     df["subevent_id"].append(id)
     df["results_url"].append(results_url) 
     df["name"].append(name)
@@ -83,9 +85,12 @@ def save(row: dict):
       tasks_folder("im/subevents.csv"),
       index_col="subevent_id"
     )
+    print(df)
     merged = pd.concat([existing, pd.DataFrame(df).set_index("subevent_id")]).drop_duplicates()
   else:
     merged = pd.DataFrame(df).set_index("subevent_id")
+  
+  merged.year = merged.year.astype(int)
   merged.to_csv(tasks_folder("im/subevents.csv"), index=True)
 
   _lock.release()
@@ -108,17 +113,26 @@ def main():
   """
   from argparse import ArgumentParser
   parser = ArgumentParser()
-  parser.add_argument("--t", type=int, default=4)
+  parser.add_argument("--t", type=int, default=4, help="The number of threads to use")
+  parser.add_argument("--skip-existing", action="store_true", help="Skip races that have already been scraped. Don't use this if you want to get all of the latest data.")
   args = parser.parse_args()
 
   # Load in all of the races. For each race, we'll find all of the subevents,
   # which correspond to a year that the race was held.
   df = pd.read_csv(tasks_folder("im/races.csv"))
+  already_scraped_races = set(pd.read_csv(tasks_folder("im/subevents.csv")).name.unique().tolist())
 
   # Add all of the events to the queue.
   q = Queue()
   for i in range(len(df)):
-    q.put(df.iloc[i].to_dict())
+    row = df.iloc[i]
+    print(row['name'])
+
+    if args.skip_existing and row["name"] in already_scraped_races:
+      print(f"Skipping {row['name']} because it has already been scraped and --skip-existing was passed.")
+      continue
+
+    q.put(row.to_dict())
 
   # Start the threads.
   for _ in range(args.t):
