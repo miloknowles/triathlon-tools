@@ -1,13 +1,11 @@
-import requests
-import json
-import os
-import glob
-from queue import Queue
-from threading import Thread
+import sys; sys.path.extend([".", "..", "../.."])
 
+import requests
+import json, os, glob
 import pandas as pd
 
 from utils.paths import data_folder, tasks_folder
+from job import Job, JobStatus, await_pooled_jobs
 
 
 API_KEY = os.getenv("API_KEY")
@@ -24,28 +22,9 @@ def scrape_single(
 ) -> dict | None:
   """Scrapes the Competitor API for the results of a subevent.
 
-  Example URL:
   ```text
   https://api.competitor.com/public/result/subevent/1C0CAFFB-36CF-46F6-8F67-C1E7F7F428B8?%24limit=100&%24skip=0&%24sort%5BFinishRankOverall%5D=1&AgeGroup=M25-29
   ```
-  
-  Parameters
-  ----------
-  subevent_id : str
-    The ID of the subevent to scrape.
-  limit : int, optional
-    The number of results to return, by default 100
-  skip : int, optional
-    The cursor into the results, by default 0. Use this to paginate the results.
-  sort : str, optional
-    The field to sort the results by, by default "FinishRankOverall". Not sure
-    what other fields are available.
-  age_group : str, optional
-    The age group to filter the results by, for example "M25-29"
-  
-  Returns
-  -------
-  The results of the scrape, or None if the request failed.
   """
   url = f"https://api.competitor.com/public/result/subevent/{subevent_id}"
   params = {
@@ -55,12 +34,7 @@ def scrape_single(
     "AgeGroup": age_group
   }
   response = requests.get(url, params=params, headers={"wtc_priv_key": API_KEY})
-
-  if response.status_code == 200:
-    return response.json()
-  else:
-    print(f"Request failed! URL {response.url} returned {response.status_code}.")
-    return None
+  return response.json()
 
 
 def scrape(
@@ -87,22 +61,23 @@ def scrape(
   return dict(total=results["total"], data=data)
 
 
-def save(subevent_id: str):
+def pipeline(subevent_id: str):
   """Downloads the results of a subevent and saves them to a file."""
+  print(f"Scraping {subevent_id}")
   data = scrape(subevent_id)
   filepath = data_folder(f"im/json/{subevent_id}.json")
   with open(filepath, "w") as file:
     json.dump(data, file, indent=2)
 
 
-def worker(queue: Queue):
-  """A worker function that takes subevent IDs from a queue and scrapes them."""
-  while not queue.empty():
-    subevent_id = queue.get()
-    print(f"Scraping {subevent_id}")
-    save(subevent_id)
-    print(f"Finished {subevent_id}")
-    queue.task_done()
+def finished_jobs() -> list[str]:
+  """Returns a list of the subevent IDs that have already been scraped."""
+  return list(
+    map(
+      lambda f: f.split("/")[-1].replace(".json", ""),
+      glob.glob(data_folder("im/json/*.json"))
+    )
+  )
 
 
 def main():
@@ -112,27 +87,22 @@ def main():
   parser.add_argument("--t", type=int, default=4)
   args = parser.parse_args()
 
-  task_queue = Queue()
-
   df = pd.read_csv(tasks_folder("im/subevents.csv"))
 
   # Get a set of the subevent IDs that we've already scraped.
-  scraped = set(map(lambda f: f.split("/")[-1].replace(".json", ""), glob.glob(data_folder("im/*.json"))))
-  print(f"Found {len(scraped)} subevents that have already been scraped. If you want to re-scrape them, delete the files.")
+  done = finished_jobs()
+  todo = set(df.subevent_id.unique().tolist()) - set(done)
 
-  for i in range(len(df)):
-    subevent_id: str = df.iloc[i]["subevent_id"]
-    if subevent_id not in scraped:
-      task_queue.put(subevent_id)
+  print(f"Found {len(done)} subevents that have already been scraped. If you want to re-scrape them, delete the files.")
+  print(f"We have {len(todo)} remaining subevents to process. Will use {args.t} threads.")
 
-  print(f"Added {task_queue.qsize()} outstanding subevents to the queue. Will process with {args.t} threads.")
+  # Jobs are tagged with the subevent ID as a UID so that we can identify them later.
+  results = await_pooled_jobs([Job(pipeline, (subevent_id,)) for subevent_id in todo], t=args.t)
 
-  for _ in range(args.t):
-    t = Thread(target=worker, args=(task_queue,))
-    t.start()
+  for r in results:
+    if r.status != JobStatus.FULFILLED:
+      print(f"Job (args={r.args}) failed with exception: {r.reason}.")
 
-  # Wait for all the tasks to be processed.
-  task_queue.join()
   print("DONE")
 
 

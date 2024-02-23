@@ -1,3 +1,5 @@
+import sys; sys.path.extend([".", "..", "../.."])
+
 import glob
 import json
 import pandas as pd
@@ -17,13 +19,12 @@ def create_csv(path: str, anonymized: bool = True) -> pd.DataFrame:
     return None
   
   for d in data:
-    if "Contact" not in d or d["Contact"] is None:
-      d["ContactFullName"] = "<missing>"
-      d["ContactGender"] = "<missing>"
-    else:
-      d["ContactFullName"] = d["Contact"]["FullName"]
-      d["ContactGender"] = d["Contact"]["Gender"]
-    d["CountryISO2"] = d["Country"]["ISO2"]
+    # Flatten the contact nested field.
+    d["ContactFullName"] = (d.get("Contact", {}) or {}).get("FullName", "")
+    d["ContactGender"] = (d.get("Contact", {}) or {}).get("Gender", "")
+    d["CountryISO2"] = (d.get("Country", {}) or {}).get("ISO2", "")
+
+    # Delete the nested fields.
     del d["Contact"]
     del d["Country"]
     del d["Subevent"]
