@@ -19,6 +19,7 @@ def create_csv(path: str, anonymized: bool = True) -> pd.DataFrame:
     return None
   
   for d in data:
+    # Flatten the contact nested field.
     if "Contact" not in d or d["Contact"] is None:
       d["ContactFullName"] = "<missing>"
       d["ContactGender"] = "<missing>"
@@ -26,6 +27,7 @@ def create_csv(path: str, anonymized: bool = True) -> pd.DataFrame:
       d["ContactFullName"] = d["Contact"]["FullName"]
       d["ContactGender"] = d["Contact"]["Gender"]
     d["CountryISO2"] = d["Country"]["ISO2"]
+    # Delete the nested fields.
     del d["Contact"]
     del d["Country"]
     del d["Subevent"]
