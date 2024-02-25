@@ -88,17 +88,18 @@ def pipeline(row: dict):
   _lock.acquire()
 
   # If the file already exists, we need to merge the new data with the old data.
+  merged = pd.DataFrame(df)
+
   if os.path.exists(tasks_folder("im/subevents.csv")):
-    existing = pd.read_csv(
-      tasks_folder("im/subevents.csv"),
-      index_col="subevent_id"
-    )
-    merged = pd.concat([existing, pd.DataFrame(df).set_index("subevent_id")]).drop_duplicates()
-  else:
-    merged = pd.DataFrame(df).set_index("subevent_id")
+    existing = pd.read_csv(tasks_folder("im/subevents.csv"))
+    before = len(existing)
+    merged = pd.concat([existing, merged]).drop_duplicates()
+    after = len(merged)
+    print(f"Merged {before} existing subevents with {len(df)} new subevents. Now we have {after} subevents.")
   
+  # Ensure that the year is an integer.
   merged.year = merged.year.astype(int)
-  merged.to_csv(tasks_folder("im/subevents.csv"), index=True)
+  merged.to_csv(tasks_folder("im/subevents.csv"), index=False)
 
   _lock.release()
 
@@ -127,6 +128,20 @@ def main():
   print(f"Will scrape subevent IDs for {len(todo)} remaining races.")
 
   jobs = [Job(pipeline, args=(row.to_dict(),)) for _, row in todo.iterrows()]
+  # jobs = [
+  #   Job(pipeline, args=(dict(
+  #     name="70.3 World Championship",
+  #     series="IRONMAN-70.3",
+  #     results_url="https://www.ironman.com/im703-world-championship-2024-results"),
+  #   )),
+  #   Job(pipeline, args=(dict(
+  #     name="IRONMAN World Championship",
+  #     series="IRONMAN",
+  #     results_url="https://www.ironman.com/im-world-championship-kona-results"),
+  #   ))
+  # ]
+  # 70.3 World Championship,IRONMAN-70.3,https://www.ironman.com/im703-world-championship-2024-results
+  # IRONMAN World Championship,IRONMAN,https://www.ironman.com/im-world-championship-kona-results
   results = await_pooled_jobs(jobs, t=args.t)
 
   for r in results:
@@ -138,3 +153,5 @@ def main():
 
 if __name__ == "__main__":
   main()
+  # url = "https://www.ironman.com/im703-world-championship-2024-results"
+  # crawl(url)

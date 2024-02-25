@@ -8,6 +8,9 @@ pandas = "*"
 pyarrow = "*"
 requests = "*"
 beautifulsoup4 = "*"
+jupyter = "*"
+numpy = "*"
+plotly = "*"
 
 [dev-packages]
 
