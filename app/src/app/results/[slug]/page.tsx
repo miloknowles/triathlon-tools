@@ -15,6 +15,7 @@ import AgeGroupMultiSelect from "./AgeGroupMultiSelect";
 import { DownloadIcon } from "@radix-ui/react-icons";
 import YearSelect from "./YearSelect";
 import { useState } from "react";
+import { Skeleton } from "@/app/ui/skeleton";
 
 
 const convertSecondsToTime = (seconds: number) => {
@@ -64,18 +65,20 @@ const HistogramChart = (
 
 export default function Page({ params }: { params: { slug: string } }) {
   const [year, setYear] = useState("2023");
-  const years = ["2023", "2022", "2021"];
 
   const fetcher = (url: string) => fetch(url, { mode: "cors" }).then((res) => res.json());
 
-  const resultsId = "demo";
+  // const resultsId = "demo";
   // const { data, error, isLoading } = useSWR(`/results/${resultsId}.json`, fetcher);
 
-  // const baseUrl = "https://github.com/miloknowles/triathlon-data/blob/main/public"
   const baseUrl = "https://raw.githubusercontent.com/miloknowles/triathlon-data/main/public";
+
+  const races = useSWR(`${baseUrl}/races.json`, fetcher);
   const { data, error, isLoading } = useSWR(`${baseUrl}/results/im703-santa-cruz-2023.json`, fetcher);
 
-  const raceName = "70.3 Santa Cruz 🇺🇸";
+  const meta = races.data ? races.data[params.slug] : {};
+  const raceName = meta?.name;
+  const years = (meta.subevents || []).map((e: any) => e.label);
 
   const finishers = (data?.data || []).filter((r: any) => r.EventStatus === 'Finish');
   const finishTimesSec = finishers.map((r: any) => r.FinishTime).filter((t: number) => t > 0);
@@ -130,8 +133,14 @@ export default function Page({ params }: { params: { slug: string } }) {
   
   return (
     <div className="container max-w-screen-xl py-9 min-h-screen">
-      <Heading size="9" className="text-center mt-4">{raceName}</Heading>
-      <YearSelect options={years} selected={year} setSelected={setYear}/>
+      <div className="flex justify-center">
+      {
+        raceName ?
+          <Heading size="9" className="text-center mt-4">{raceName}</Heading> :
+          <Skeleton className="w-[400px] h-[60px] rounded-full py-5" />
+      }
+      </div>
+      <YearSelect options={years} selected={year} setSelected={setYear} loading={years.length === 0}/>
       {/* <Link href="https://www.ironman.com/im703-santa-cruz-results" target="_blank" className="text-center">Race Page</Link> */}
       <Heading size="8" className="mt-9">Field Results</Heading>
       <div className="mt-6">

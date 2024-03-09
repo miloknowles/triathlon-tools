@@ -65,7 +65,7 @@ def main():
   df["name"] = df.series.map(lambda s: {"IRONMAN-70.3": "70.3"}.get(s, s)) + " " + df.name.map(lambda n: n.replace("IRONMAN ", "").replace("70.3 ", ""))
 
   ids = df.id.unique()
-  out = []
+  out = {}
 
   for id in ids:
     df_ = df[df.id == id].copy()
@@ -86,7 +86,7 @@ def main():
       
       print(full_subevent_id)
 
-      entry.subevents.append(Subevent(label=row.name, id=full_subevent_id))
+      entry.subevents.append(Subevent(label=row.year, id=full_subevent_id))
 
       if args.data:
         with open(data_folder(f"im/json/{row.subevent_id}.json")) as f:
@@ -95,10 +95,10 @@ def main():
         with open(os.path.join(args.data, f"{full_subevent_id}.json"), "w") as f:
           json.dump(data, f, indent=2)
 
-    out.append(entry)
+    out[id] = entry
 
   with open(args.index, "w") as f:
-    json.dump([m.dict() for m in out], f, indent=2)
+    json.dump({id: out[id].dict() for id in out}, f, indent=2)
   
   print("DONE")
 

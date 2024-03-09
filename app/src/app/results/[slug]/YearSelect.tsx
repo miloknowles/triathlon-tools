@@ -1,7 +1,9 @@
+import { Skeleton } from "@/app/ui/skeleton";
 import { Button } from "@tremor/react";
 
 
 interface YearSelectProps {
+  loading?: boolean;
   className?: string;
   options: string[];
   selected: string;
@@ -10,7 +12,7 @@ interface YearSelectProps {
 
 
 export default function YearSelect({
-  className, options, selected, setSelected
+  loading, className, options, selected, setSelected
 } : YearSelectProps) {
   const btns = options.map((option) => {
     const variant = option === selected ? "primary" : "secondary";
@@ -25,9 +27,15 @@ export default function YearSelect({
     );
   });
 
+  const skeletons = Array(5).fill(0).map((_, i) => (<Skeleton key={i} className="h-[40px] w-[100px] rounded-full"/>));
+
   return (
     <div className="flex gap-3 flex-row mt-6 justify-center">
-      {btns}
+      {
+        loading ?
+          skeletons :
+          btns
+      }
     </div>
   )
 }
