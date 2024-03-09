@@ -30,7 +30,7 @@
     "@types/highcharts": "^7.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "cmdk": "^0.2.0",
+    "cmdk": "^1.0.0",
     "d3": "^7.8.5",
     "d3-scale-chromatic": "^3.0.0",
     "highcharts": "^11.2.0",

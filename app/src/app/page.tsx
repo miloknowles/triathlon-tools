@@ -49,16 +49,16 @@ export default function Page() {
               href="/tools/bike-simulator"
               abbrev="BSP"
               color="green"
-              t="Bike split simulator"
+              t="Bike Split Simulator"
               d="Predict your finish time on a bike course using a physics simulator"
             />
-            {/* <MenuCard
-              href="/tools/swimming-tss"
-              abbrev="sTSS"
+            <MenuCard
+              href="/results"
+              abbrev="IRR"
               color="blue"
-              t="Swimming TSS calculator"
-              d="Calculate TSS for a swim workout based on the Training Peaks formula"
-            /> */}
+              t="Ironman Race Results"
+              d="Analyze past race results from Ironman events"
+            />
           </Grid>
         </Container>
       </Section>

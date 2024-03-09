@@ -66,10 +66,14 @@ export default function Page({ params }: { params: { slug: string } }) {
   const [year, setYear] = useState("2023");
   const years = ["2023", "2022", "2021"];
 
-  const fetcher = (url: string) => fetch(url).then((res) => res.json());
+  const fetcher = (url: string) => fetch(url, { mode: "cors" }).then((res) => res.json());
 
   const resultsId = "demo";
-  const { data, error, isLoading } = useSWR(`/results/${resultsId}.json`, fetcher);
+  // const { data, error, isLoading } = useSWR(`/results/${resultsId}.json`, fetcher);
+
+  // const baseUrl = "https://github.com/miloknowles/triathlon-data/blob/main/public"
+  const baseUrl = "https://raw.githubusercontent.com/miloknowles/triathlon-data/main/public";
+  const { data, error, isLoading } = useSWR(`${baseUrl}/results/im703-santa-cruz-2023.json`, fetcher);
 
   const raceName = "70.3 Santa Cruz 🇺🇸";
 

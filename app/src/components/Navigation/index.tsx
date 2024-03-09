@@ -16,11 +16,12 @@ import {
 import { Button } from "../ui/button"
 import { Cross1Icon, GitHubLogoIcon, HamburgerMenuIcon } from "@radix-ui/react-icons"
 import { Container, Flex, Heading, IconButton, Section } from "@radix-ui/themes"
+import { RaceSearchMenu } from "../RaceSearchMenu";
 
 
 const tools: { title: string; href: string; description: string }[] = [
   {
-    title: "🚲 Bike Split Simulator",
+    title: "Bike Split Simulator",
     href: "/tools/bike-simulator",
     description: "Predict your finish time on a bike course using a physics simulator",
   },
@@ -63,6 +64,7 @@ export default function Navigation() {
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
+            <RaceSearchMenu/>
           </NavigationMenuList>
         </NavigationMenu>
 
@@ -128,7 +130,7 @@ const ListItem = React.forwardRef<
           {...props}
         >
           <div className="text-sm font-medium leading-none">{title}</div>
-          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground pt-2">
             {children}
           </p>
         </a>
