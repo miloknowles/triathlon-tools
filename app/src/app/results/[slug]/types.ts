@@ -37,6 +37,8 @@ export const AGE_GROUPS = [
   { value: "overall", label: "Overall" },
   { value: "m-overall", label: "Overall (M)" },
   { value: "f-overall", label: "Overall (F)" },
+  { value: "MPRO", label: "Pro (M)" },
+  { value: "FPRO", label: "Pro (F)" },
 
   // Female
   { value: "F18-24", label: "Female 18-24" },

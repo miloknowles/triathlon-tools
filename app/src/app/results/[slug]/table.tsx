@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, MultiSelect, SearchSelect, MultiSelectItem, Select, Badge, SearchSelectItem } from "@tremor/react";
+import { Button, Card, MultiSelect, SearchSelect, MultiSelectItem, Badge, SearchSelectItem } from "@tremor/react";
 
 import {
   Table,
@@ -9,8 +9,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  TableFoot,
-  TableFooterCell,
 } from '@tremor/react';
 import { IronmanData } from "./types";
 import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
@@ -18,7 +16,6 @@ import AgeGroupMultiSelect from "./AgeGroupMultiSelect";
 
 
 export default function ResultsTable({ data }: { data: IronmanData[] }) {
-
   const page = 10;
   const perPage = 10;
 
@@ -30,7 +27,7 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
     const runBadge = <Badge size="xs">{row.RunRankGender}</Badge>;
     return (
       <TableRow key={row.Contact.FullName + row.AgeGroup}>
-        <TableCell>{row.Contact.FullName} ({row.CountryISO2})</TableCell>
+        <TableCell>{row.Contact.FullName || "?"} ({row.CountryISO2})</TableCell>
         <TableCell>{row.AgeGroup}</TableCell>
         <TableCell>{row.EventStatus === "Finish" ? <>{row.FinishTimeConverted} {finishBadge}</> : status}</TableCell>
         <TableCell>{row.SwimTimeConverted} {swimBadge}</TableCell>
@@ -42,7 +39,7 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
     );
   });
 
-  const names = data.map((row) => {
+  const names = data.filter((row) => row.Contact?.FullName).map((row) => {
     return (
       <MultiSelectItem key={row.Contact.FullName} value={row.Contact.FullName}>
         {row.Contact.FullName}
@@ -52,13 +49,7 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
 
   return (
     <Card className="mt-6">
-      <div className="flex flex-row space-x-3">
-        <Button>2023</Button>
-        <Button variant="secondary">2022</Button>
-        <Button variant="secondary">2021</Button>
-        <Button variant="secondary">2020</Button>
-      </div>
-      <div className="flex gap-3 flex-row mt-6">
+      <div className="flex gap-3 flex-row">
         <MultiSelect className="" placeholder="Search Athlete(s)" icon={MagnifyingGlassIcon}>
           {names}
         </MultiSelect>

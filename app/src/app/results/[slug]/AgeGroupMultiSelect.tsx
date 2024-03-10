@@ -4,11 +4,13 @@ import { AGE_GROUPS } from "./types";
 
 interface AgeGroupMultiSelectProps {
   className?: string;
+  selected?: string[]; 
+  onChange?: (selected: string[]) => void;
 }
 
 
 export default function AgeGroupMultiSelect(
-  { className }: AgeGroupMultiSelectProps
+  { className, selected, onChange }: AgeGroupMultiSelectProps
 ) {
   const items = AGE_GROUPS.map((ageGroup) => (
       <MultiSelectItem key={ageGroup.value} value={ageGroup.value}>
@@ -18,7 +20,12 @@ export default function AgeGroupMultiSelect(
   );
 
   return (
-    <MultiSelect className={`${className}`} placeholder="Age Group">
+    <MultiSelect
+      className={`${className}`}
+      placeholder="Age Group"
+      onChange={onChange ? onChange : console.debug}
+      value={selected}
+    >
       {items}
     </MultiSelect>
   )

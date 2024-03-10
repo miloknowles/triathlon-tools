@@ -6,8 +6,8 @@ interface YearSelectProps {
   loading?: boolean;
   className?: string;
   options: string[];
-  selected: string;
-  setSelected: (value: string) => void;
+  selected: string | null;
+  setSelected: (value: string | null) => void;
 }
 
 
