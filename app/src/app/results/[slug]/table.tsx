@@ -16,8 +16,14 @@ import AgeGroupMultiSelect from "./AgeGroupMultiSelect";
 import { useState } from "react";
 
 
+const rankSplits = (data: IronmanData[], rankBy: "overall" | "gender" | "group") => {
+
+}
+
+
 export default function ResultsTable({ data }: { data: IronmanData[] }) {
   const [page, setPage] = useState(0);
+  const [rankBy, setRankBy] = useState<string | undefined>("gender");
   const [ageGroups, setAgeGroups] = useState<string[]>(["overall"]);
 
   const perPage = 10;
@@ -32,10 +38,26 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
 
   const rows = filtered.slice(page*perPage, page*perPage + perPage).map((row) => {
     const status = <Badge size="xs">{row.EventStatus}</Badge>;
-    const finishBadge = <Badge size="xs">{row.FinishRankGender}</Badge>
-    const swimBadge = <Badge size="xs">{row.SwimRankGender}</Badge>;
-    const bikeBadge = <Badge size="xs">{row.BikeRankGender}</Badge>
-    const runBadge = <Badge size="xs">{row.RunRankGender}</Badge>;
+    const finishBadge = <Badge size="xs">{{
+      overall: row.FinishRankOverall,
+      group: row.FinishRankGroup,
+      gender: row.FinishRankGender,
+    }[rankBy || "gender"]}</Badge>
+    const swimBadge = <Badge size="xs">{{
+      overall: row.SwimRankOverall,
+      group: row.SwimRankGroup,
+      gender: row.SwimRankGender,
+    }[rankBy || "gender"]}</Badge>;
+    const bikeBadge = <Badge size="xs">{{
+      overall: row.BikeRankOverall,
+      group: row.BikeRankGroup,
+      gender: row.BikeRankGender,
+    }[rankBy || "gender"]}</Badge>
+    const runBadge = <Badge size="xs">{{
+      overall: row.RunRankOverall,
+      group: row.RunRankGroup,
+      gender: row.RunRankGender,
+    }[rankBy || "gender"]}</Badge>;
 
     return (
       <TableRow key={row.Contact.FullName + row.AgeGroup}>
@@ -74,10 +96,18 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
           {names}
         </MultiSelect>
         <AgeGroupMultiSelect className="max-w-[240px]" selected={ageGroups} onChange={setAgeGroups}/>
-        <SearchSelect className="max-w-[240px]" placeholder="Rank Splits By" defaultValue="gender" icon={ArrowDownIcon}>
+        <SearchSelect
+          className="max-w-[240px]"
+          placeholder="Rank Splits By"
+          defaultValue="gender"
+          icon={ArrowDownIcon}
+          value={rankBy}
+          // @ts-ignore
+          onChange={setRankBy}
+        >
           <SearchSelectItem value="gender">Gender</SearchSelectItem>
           <SearchSelectItem value="overall">Overall</SearchSelectItem>
-          <SearchSelectItem value="agegroup">Age Group</SearchSelectItem>
+          <SearchSelectItem value="group">Age Group</SearchSelectItem>
         </SearchSelect>
         {/* <Button icon={DownloadIcon}>Download</Button> */}
       </div>
