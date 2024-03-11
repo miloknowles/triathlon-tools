@@ -25,7 +25,6 @@ export default function Page({ params }: { params: { slug: string } }) {
   const years = subevents.map((e: any) => e.label);
   const selectedSubevent = subevents.find((e: any) => e.label === year);
   const subeventId = selectedSubevent?.id;
-  console.log(subeventId);
 
   useEffect(() => {
     if (!year && years.length > 0) {
@@ -33,8 +32,7 @@ export default function Page({ params }: { params: { slug: string } }) {
     }
   }, [years]);
 
-  const { data, error, isLoading } = useSWR(subeventId ? `${baseUrl}/results/${subeventId}.json` : null, fetcher);
-  console.log(data, isLoading);
+  const { data, error, isLoading, isValidating } = useSWR(subeventId ? `${baseUrl}/results/${subeventId}.json` : null, fetcher);
   
   return (
     <div className="container max-w-screen-xl py-9 min-h-screen">

@@ -46,7 +46,7 @@ def rank_splits(data: dict):
   """Rank everyone's splits overall, as well as based on gender and age group."""
   df = pd.DataFrame(data)
 
-  df["Gender"] = df.AgeGroup.map(lambda ag: ag[0] if not pd.isna(ag) else np.nan)
+  df["Gender"] = df.AgeGroup.map(lambda ag: ag[0] if not pd.isna(ag) else pd.NA)
   df["FinishRankGroup"] = df[df.FinishTime > 0].groupby(by=["AgeGroup"])["FinishTime"].rank(method="min", ascending=True)
   df["SwimRankGroup"] = df[df.SwimTime > 0].groupby(by=["AgeGroup"])["SwimTime"].rank(method="min", ascending=True)
   df["BikeRankGroup"] = df[df.BikeTime > 0].groupby(by=["AgeGroup"])["BikeTime"].rank(method="min", ascending=True)
@@ -61,6 +61,8 @@ def rank_splits(data: dict):
   df["SwimRankOverall"] = df[df.SwimTime > 0]["SwimTime"].rank(method="min", ascending=True)
   df["BikeRankOverall"] = df[df.BikeTime > 0]["BikeTime"].rank(method="min", ascending=True)
   df["RunRankOverall"] = df[df.RunTime > 0]["RunTime"].rank(method="min", ascending=True)
+
+  df.fillna(-1, inplace=True)
 
   return df.to_dict(orient="records")
 

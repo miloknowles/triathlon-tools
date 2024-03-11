@@ -16,11 +16,6 @@ import AgeGroupMultiSelect from "./AgeGroupMultiSelect";
 import { useState } from "react";
 
 
-const rankSplits = (data: IronmanData[], rankBy: "overall" | "gender" | "group") => {
-
-}
-
-
 export default function ResultsTable({ data }: { data: IronmanData[] }) {
   const [page, setPage] = useState(0);
   const [rankBy, setRankBy] = useState<string | undefined>("gender");
@@ -38,6 +33,7 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
 
   const rows = filtered.slice(page*perPage, page*perPage + perPage).map((row) => {
     const status = <Badge size="xs">{row.EventStatus}</Badge>;
+
     const finishBadge = <Badge size="xs">{{
       overall: row.FinishRankOverall,
       group: row.FinishRankGroup,
