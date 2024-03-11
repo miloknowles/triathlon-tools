@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, MultiSelect, SearchSelect, MultiSelectItem, Badge, SearchSelectItem, TextInput } from "@tremor/react";
+import { Button, Card, SearchSelect, Badge, SearchSelectItem, TextInput } from "@tremor/react";
 
 import {
   Table,
@@ -10,7 +10,7 @@ import {
   TableRow,
   TableCell,
 } from '@tremor/react';
-import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { ArrowLeftIcon, ArrowRightIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 import { Link } from "@radix-ui/themes";
 
@@ -24,16 +24,22 @@ interface RaceData {
 
 
 export default function RaceTable({ data }: { data: RaceData[] }) {
-  const [series, setSeries] = useState<string | undefined>("IRONMAN");
-  
+  const [series, setSeries] = useState<"all" | "IRONMAN" | "IRONMAN-70.3" | "5150-Triathlon-Series" | undefined>(undefined);
   const [page, setPage] = useState(0);
+  const [query, setQuery] = useState<string | undefined>(undefined);
 
   const perPage = 15;
 
-  const filtered = data.filter((r: any) => {
-    if (series === undefined) return true;
+  let filtered = data.filter((r: any) => {
+    if (series === undefined || series === "all") return true;
     return r.series === series;
   });
+
+  if (query) {
+    filtered = filtered.filter((r: any) => {
+      return r.name.toLowerCase().includes(query.toLowerCase());
+    });
+  }
 
   const maxPage = Math.ceil(filtered.length / perPage);
 
@@ -67,22 +73,23 @@ export default function RaceTable({ data }: { data: RaceData[] }) {
 
   return (
     <Card className="mt-6">
-      <div className="flex gap-3 flex-row">
-        {/* <MultiSelect className="" placeholder="Search Athlete(s)" icon={MagnifyingGlassIcon}>
-          {names}
-        </MultiSelect> */}
-        {/* <AgeGroupMultiSelect className="max-w-[240px]" selected={ageGroups} onChange={setAgeGroups}/> */}
-        <TextInput icon={MagnifyingGlassIcon} placeholder="Search..." />
-
+      <div className="flex gap-3 flex-col-reverse sm:flex-row">
+        <TextInput
+          icon={MagnifyingGlassIcon}
+          placeholder="Search..."
+          value={query}
+          onValueChange={(e) => setQuery(e.target.value)}
+        />
         <SearchSelect
-          className="max-w-[240px]"
-          placeholder="Race Series"
-          defaultValue="IRONMAN"
-          // icon={ArrowDownIcon}
+          className="sm:max-w-[240px]"
+          placeholder="Filter by distance"
+          // defaultValue="all"
           value={series}
           // @ts-ignore
-          onChange={setSeries}
+          onValueChange={setSeries}
+          
         >
+          <SearchSelectItem value="all">All</SearchSelectItem>
           <SearchSelectItem value="IRONMAN">IRONMAN</SearchSelectItem>
           <SearchSelectItem value="IRONMAN-70.3">70.3</SearchSelectItem>
           <SearchSelectItem value="5150-Triathlon-Series">5150</SearchSelectItem>
@@ -92,7 +99,7 @@ export default function RaceTable({ data }: { data: RaceData[] }) {
         <TableHead>
           <TableRow>
             <TableHeaderCell className="max-w-[200px]">Name</TableHeaderCell>
-            <TableHeaderCell>Series</TableHeaderCell>
+            <TableHeaderCell>Distance</TableHeaderCell>
             <TableHeaderCell>Result Years</TableHeaderCell>
           </TableRow>
         </TableHead>

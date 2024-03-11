@@ -35,20 +35,22 @@ export default function Page({ params }: { params: { slug: string } }) {
   const { data, error, isLoading, isValidating } = useSWR(subeventId ? `${baseUrl}/results/${subeventId}.json` : null, fetcher);
   
   return (
-    <div className="container max-w-screen-xl py-9 min-h-screen">
+    <div className="px-3 container max-w-screen-xl py-3 sm:py-9 min-h-screen">
       <div className="flex justify-center">
       {
         raceName ?
-          <Heading size="9" className="text-center mt-4">{raceName}</Heading> :
+          <Heading size={{initial: "8", sm: "9"}} className="text-center mt-4">{raceName}</Heading> :
           <Skeleton className="w-[400px] h-[60px] rounded-full mt-4" />
       }
       </div>
-      <YearSelect options={years} selected={year} setSelected={setYear} loading={years.length === 0}/>
+      <div className="max-w-screen overflow-scroll">
+        <YearSelect options={years} selected={year} setSelected={setYear} loading={years.length === 0}/>
+      </div>
 
-      <Heading size="8" className="mt-9">Field Results</Heading>
+      <Heading size={{initial: "7", sm: "8"}} className="mt-9">Field Results</Heading>
       <Charts data={data?.data || []} loading={isLoading}/>
 
-      <Heading size="8" className="mt-9">Individual Results</Heading>
+      <Heading size={{initial: "7", sm: "8"}} className="mt-9">Individual Results</Heading>
       <ResultsTable data={data?.data || []} />
     </div>
   )

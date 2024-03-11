@@ -11,7 +11,7 @@ import {
   TableCell,
 } from '@tremor/react';
 import { IronmanData } from "./types";
-import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, DownloadIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import AgeGroupMultiSelect from "./AgeGroupMultiSelect";
 import { useState } from "react";
 
@@ -20,16 +20,24 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
   const [page, setPage] = useState(0);
   const [rankBy, setRankBy] = useState<string | undefined>("gender");
   const [ageGroups, setAgeGroups] = useState<string[]>(["overall"]);
+  const [searched, setSearched] = useState<string[]>([]);
 
   const perPage = 10;
-  const maxPage = Math.ceil(data.length / perPage);
 
-  const filtered = data.filter((r: any) => {
+  let filtered = data.filter((r: any) => {
     if (ageGroups.includes("overall")) return true;
     else if (ageGroups.includes("m-overall") && r.AgeGroup.startsWith("M")) return true;
     else if (ageGroups.includes("f-overall") && r.AgeGroup.startsWith("F")) return true;
     else return ageGroups.includes(r.AgeGroup);
   });
+
+  if (searched.length > 0) {
+    filtered = filtered.filter((r: any) => {
+      return searched.includes(r.Contact.FullName);
+    });
+  }
+
+  const maxPage = Math.floor(filtered.length / perPage);
 
   const rows = filtered.slice(page*perPage, page*perPage + perPage).map((row) => {
     const status = <Badge size="xs">{row.EventStatus}</Badge>;
@@ -87,23 +95,28 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
 
   return (
     <Card className="mt-6">
-      <div className="flex gap-3 flex-row">
-        <MultiSelect className="" placeholder="Search Athlete(s)" icon={MagnifyingGlassIcon}>
+      <div className="flex gap-3 flex-col sm:flex-row">
+        <MultiSelect
+          className=""
+          placeholder="Search Athlete(s)"
+          icon={MagnifyingGlassIcon}
+          value={searched}
+          onValueChange={setSearched}
+        >
           {names}
         </MultiSelect>
-        <AgeGroupMultiSelect className="max-w-[240px]" selected={ageGroups} onChange={setAgeGroups}/>
+        <AgeGroupMultiSelect className="sm:max-w-[240px]" selected={ageGroups} onChange={setAgeGroups}/>
         <SearchSelect
-          className="max-w-[240px]"
+          className="sm:max-w-[240px]"
           placeholder="Rank Splits By"
           defaultValue="gender"
           icon={ArrowDownIcon}
           value={rankBy}
-          // @ts-ignore
-          onChange={setRankBy}
+          onValueChange={setRankBy}
         >
-          <SearchSelectItem value="gender">Gender</SearchSelectItem>
-          <SearchSelectItem value="overall">Overall</SearchSelectItem>
-          <SearchSelectItem value="group">Age Group</SearchSelectItem>
+          <SearchSelectItem value="gender">Rank by Gender</SearchSelectItem>
+          <SearchSelectItem value="overall">Rank Overall</SearchSelectItem>
+          <SearchSelectItem value="group">Rank by Age Group</SearchSelectItem>
         </SearchSelect>
         {/* <Button icon={DownloadIcon}>Download</Button> */}
       </div>

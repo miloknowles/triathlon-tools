@@ -22,8 +22,8 @@ export default function AgeGroupMultiSelect(
   return (
     <MultiSelect
       className={`${className}`}
-      placeholder="Age Group"
-      onChange={onChange ? onChange : console.debug}
+      placeholder="Filter by Age Group"
+      onValueChange={onChange ? onChange : console.debug}
       value={selected}
     >
       {items}

@@ -21,6 +21,7 @@ export default function YearSelect({
         key={option}
         variant={variant}
         onClick={() => setSelected(option)}
+        size="xs"
       >
         {option}
       </Button>

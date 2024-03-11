@@ -17,8 +17,8 @@ export default function Client() {
   races.sort((a: any, b: any) => a.name.localeCompare(b.name));
 
   return (
-    <div className="container max-w-screen-xl py-9 min-h-screen">
-      <Heading size="9" className="mt-4">Race Results</Heading>
+    <div className="px-4 sm:px-6 container max-w-screen-xl py-4 sm:py-9 min-h-screen">
+      <Heading size="8">Race Results</Heading>
       <RaceTable data={races || []}/>
     </div>
   )

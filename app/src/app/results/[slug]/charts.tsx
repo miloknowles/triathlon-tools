@@ -52,7 +52,7 @@ const HistogramChart = (
 ) => {
   return (
     <div className="mt-6">
-      <Title>{title}</Title>
+      <Title className="text-center">{title}</Title>
       {
         loading ? 
           <Skeleton className="h-[180px] rounded-lg mt-2 mx-3"/> :
@@ -135,8 +135,8 @@ export default function Charts({ data, loading } : { data: IronmanData[], loadin
     <div>
       <div className="mt-6">
         <div className="flex gap-3 flex-row mt-6">
-          <AgeGroupMultiSelect className="ml-auto max-w-[240px]" selected={ageGroups} onChange={setAgeGroups}/>
-          <Button icon={DownloadIcon}>Download</Button>
+          <AgeGroupMultiSelect className="sm:ml-auto sm:max-w-[240px]" selected={ageGroups} onChange={setAgeGroups}/>
+          <Button icon={DownloadIcon} className="hidden sm:flex">Download</Button>
         </div>
       </div>
       <div className="grid md:grid-cols-2">
