@@ -1,4 +1,5 @@
 export interface IronmanData {
+  ResultId: string;
   Contact: {
     FullName: string;
   };

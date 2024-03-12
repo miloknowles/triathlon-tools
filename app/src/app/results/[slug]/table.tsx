@@ -16,6 +16,7 @@ import { IronmanData } from "./types";
 import { ArrowDownIcon, ArrowLeftIcon, ArrowRightIcon, MagnifyingGlassIcon } from "@radix-ui/react-icons";
 import AgeGroupMultiSelect from "./AgeGroupMultiSelect";
 import { useState } from "react";
+import { EMOJIS, SupportedCountryCode } from "./emojis";
 
 
 export default function ResultsTable({ data }: { data: IronmanData[] }) {
@@ -36,7 +37,7 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
 
   if (searched.length > 0) {
     filtered = filtered.filter((r: any) => {
-      return searched.includes(r.Contact.FullName);
+      return searched.includes(r.ResultId);
     });
   }
 
@@ -66,9 +67,11 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
       gender: row.RunRankGender,
     }[rankBy || "gender"]}</Badge>;
 
+    const key = row.ResultId;
+
     return (
-      <TableRow key={row.Contact.FullName + row.AgeGroup}>
-        <TableCell>{row.Contact.FullName || "?"} ({row.CountryISO2})</TableCell>
+      <TableRow key={key}>
+        <TableCell>{row.Contact.FullName || "?"} {EMOJIS[row.CountryISO2 as SupportedCountryCode] || `(${row.CountryISO2})`}</TableCell>
         <TableCell>{row.AgeGroup}</TableCell>
         <TableCell>{row.EventStatus === "Finish" ? <>{row.FinishTimeConverted} {finishBadge}</> : status}</TableCell>
         <TableCell>{row.SwimTimeConverted} {swimBadge}</TableCell>
@@ -80,13 +83,17 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
     );
   });
 
-  const names = data.filter((row) => row.Contact?.FullName).map((row) => {
+  const names = data.filter((row) => row.Contact?.FullName !== undefined).map((row) => {
+    const key = row.ResultId;
     return (
-      <FastMultiSelectItem key={row.Contact.FullName} value={row.Contact.FullName}>
-        {row.Contact.FullName}
+      <FastMultiSelectItem
+        key={key}
+        value={key}
+      >
+        {row.Contact.FullName} ({row.AgeGroup}) {EMOJIS[row.CountryISO2 as SupportedCountryCode] || `(${row.CountryISO2})`}
       </FastMultiSelectItem>
     );
-  }); // .slice(0, 100);
+  });
 
   const nextPage = () => {
     setPage(Math.min(page + 1, maxPage));
@@ -105,7 +112,7 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
           icon={MagnifyingGlassIcon}
           value={searched}
           onValueChange={setSearched}
-          limitRenderedOptions={10}
+          limitRenderedOptions={100}
         >
           {names}
         </FastMultiSelect>
