@@ -30,7 +30,8 @@
     "@types/highcharts": "^7.0.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "cmdk": "^0.2.0",
+    "cmdk": "^1.0.0",
+    "d3": "^7.8.5",
     "d3-scale-chromatic": "^3.0.0",
     "highcharts": "^11.2.0",
     "highcharts-react-official": "^3.2.1",
@@ -43,6 +44,7 @@
     "swr": "^2.2.4",
     "tailwind-merge": "^2.1.0",
     "tailwindcss-animate": "^1.0.7",
+    "use-debounce": "^10.0.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
