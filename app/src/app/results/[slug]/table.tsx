@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, SearchSelect, Badge, SearchSelectItem } from "@tremor/react";
+import { Button, SearchSelect, Badge, SearchSelectItem } from "@tremor/react";
 
 import { MultiSelect as FastMultiSelect, MultiSelectItem as FastMultiSelectItem } from "@/components/FastMultiSelect";
 
@@ -104,7 +104,7 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
   }
 
   return (
-    <Card className="mt-6">
+    <div className="mt-6">
       <div className="flex gap-3 flex-col sm:flex-row">
         <FastMultiSelect
           className=""
@@ -151,6 +151,6 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
         <Button variant="secondary" icon={ArrowLeftIcon} onClick={prevPage} disabled={page === 0}>Previous</Button>
         <Button icon={ArrowRightIcon} iconPosition="right" onClick={nextPage} disabled={page === maxPage}>Next</Button>
       </div>
-    </Card>
+    </div>
   );
 }

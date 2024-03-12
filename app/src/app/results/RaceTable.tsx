@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Card, SearchSelect, Badge, SearchSelectItem, TextInput } from "@tremor/react";
+import { Button, SearchSelect, Badge, SearchSelectItem, TextInput } from "@tremor/react";
 
 import {
   Table,
@@ -72,7 +72,7 @@ export default function RaceTable({ data }: { data: RaceData[] }) {
   }
 
   return (
-    <Card className="mt-6">
+    <div className="py-6">
       <div className="flex gap-3 flex-col-reverse sm:flex-row">
         <TextInput
           icon={MagnifyingGlassIcon}
@@ -110,6 +110,6 @@ export default function RaceTable({ data }: { data: RaceData[] }) {
         <Button variant="secondary" icon={ArrowLeftIcon} onClick={prevPage} disabled={page === 0}>Previous</Button>
         <Button icon={ArrowRightIcon} iconPosition="right" onClick={nextPage} disabled={page >= (maxPage - 1)}>Next</Button>
       </div>
-    </Card>
+    </div>
   );
 }

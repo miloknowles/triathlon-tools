@@ -110,7 +110,7 @@ export default function Navigation() {
                 <Link href="/" onClick={onClickLink}>
                   <Heading size="7">Home</Heading>
                 </Link>
-                <Link href="/tools/results" onClick={onClickLink}>
+                <Link href="/results" onClick={onClickLink}>
                   <Heading size="7">Results</Heading>
                 </Link>
                 <Link href="/tools/bike-simulator" onClick={onClickLink}>
