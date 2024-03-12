@@ -18,6 +18,7 @@ export function makeClassName(componentName: string) {
 
 
 export const tremorTwMerge = extendTailwindMerge({
+  // @ts-ignore
   classGroups: {
     boxShadow: [
       {
