@@ -1,6 +1,8 @@
 "use client";
 
-import { Button, Card, MultiSelect, SearchSelect, MultiSelectItem, Badge, SearchSelectItem } from "@tremor/react";
+import { Button, Card, SearchSelect, Badge, SearchSelectItem } from "@tremor/react";
+
+import { MultiSelect as FastMultiSelect, MultiSelectItem as FastMultiSelectItem } from "@/components/FastMultiSelect";
 
 import {
   Table,
@@ -24,6 +26,7 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
 
   const perPage = 10;
 
+  // Maybe useMemo?
   let filtered = data.filter((r: any) => {
     if (ageGroups.includes("overall")) return true;
     else if (ageGroups.includes("m-overall") && r.AgeGroup.startsWith("M")) return true;
@@ -79,11 +82,11 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
 
   const names = data.filter((row) => row.Contact?.FullName).map((row) => {
     return (
-      <MultiSelectItem key={row.Contact.FullName} value={row.Contact.FullName}>
+      <FastMultiSelectItem key={row.Contact.FullName} value={row.Contact.FullName}>
         {row.Contact.FullName}
-      </MultiSelectItem>
+      </FastMultiSelectItem>
     );
-  }).slice(0, 100);
+  }); // .slice(0, 100);
 
   const nextPage = () => {
     setPage(Math.min(page + 1, maxPage));
@@ -96,15 +99,16 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
   return (
     <Card className="mt-6">
       <div className="flex gap-3 flex-col sm:flex-row">
-        <MultiSelect
+        <FastMultiSelect
           className=""
           placeholder="Search Athlete(s)"
           icon={MagnifyingGlassIcon}
           value={searched}
           onValueChange={setSearched}
+          limitRenderedOptions={10}
         >
           {names}
-        </MultiSelect>
+        </FastMultiSelect>
         <AgeGroupMultiSelect className="sm:max-w-[240px]" selected={ageGroups} onChange={setAgeGroups}/>
         <SearchSelect
           className="sm:max-w-[240px]"
