@@ -19,6 +19,15 @@ import { useState } from "react";
 import { EMOJIS, SupportedCountryCode } from "./emojis";
 
 
+const getRankColor = (rank: number | undefined) => {
+  if (rank === -1) return "transparent";
+  if (rank === 1) return "gold-500";
+  if (rank === 2) return "silver-500";
+  if (rank === 3) return "bronze-500";
+  return "blue-400";
+}
+
+
 export default function ResultsTable({ data }: { data: IronmanData[] }) {
   const [page, setPage] = useState(0);
   const [rankBy, setRankBy] = useState<string | undefined>("gender");
@@ -46,26 +55,34 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
   const rows = filtered.slice(page*perPage, page*perPage + perPage).map((row) => {
     const status = <Badge size="xs">{row.EventStatus}</Badge>;
 
-    const finishBadge = <Badge size="xs">{{
+    const finishRank = {
       overall: row.FinishRankOverall,
       group: row.FinishRankGroup,
       gender: row.FinishRankGender,
-    }[rankBy || "gender"]}</Badge>
-    const swimBadge = <Badge size="xs">{{
+    }[rankBy || "gender"];
+
+    const swimRank = {
       overall: row.SwimRankOverall,
       group: row.SwimRankGroup,
       gender: row.SwimRankGender,
-    }[rankBy || "gender"]}</Badge>;
-    const bikeBadge = <Badge size="xs">{{
+    }[rankBy || "gender"];
+
+    const bikeRank = {
       overall: row.BikeRankOverall,
       group: row.BikeRankGroup,
       gender: row.BikeRankGender,
-    }[rankBy || "gender"]}</Badge>
-    const runBadge = <Badge size="xs">{{
+    }[rankBy || "gender"];
+
+    const runRank = {
       overall: row.RunRankOverall,
       group: row.RunRankGroup,
       gender: row.RunRankGender,
-    }[rankBy || "gender"]}</Badge>;
+    }[rankBy || "gender"];
+
+    const finishBadge = <Badge size="xs" color={getRankColor(finishRank)}>{finishRank === -1 ? "?" : finishRank}</Badge>
+    const swimBadge = <Badge size="xs" color={getRankColor(swimRank)}>{swimRank === -1 ? "?" : swimRank}</Badge>;
+    const bikeBadge = <Badge size="xs" color={getRankColor(bikeRank)}>{bikeRank === -1 ? "?" : bikeRank}</Badge>
+    const runBadge = <Badge size="xs" color={getRankColor(runRank)}>{runRank === -1 ? "?" : runRank}</Badge>;
 
     const key = row.ResultId;
 

@@ -23,6 +23,16 @@ module.exports = {
     },
     extend: {
       colors: {
+        gold: {
+          500: "#bf9b30",
+        },
+        silver: {
+          500: "#A5A9B4"
+        },
+        bronze: {
+          500: "#cd7f32"
+        },
+
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -162,6 +172,12 @@ module.exports = {
     require("@headlessui/tailwindcss")
   ],
   safelist: [
+    "bg-gold-500",
+    "bg-silver-500",
+    "bg-bronze-500",
+    "text-gold-500",
+    "text-silver-500",
+    "text-bronze-500",
     {
       pattern:
         /^(bg-(?:slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(?:50|100|200|300|400|500|600|700|800|900|950))$/,
