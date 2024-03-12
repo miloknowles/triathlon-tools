@@ -71,7 +71,9 @@ const HistogramChart = (
 }
 
 
-export default function Charts({ data, loading } : { data: IronmanData[], loading?: boolean }) {
+export default function Charts(
+  { data, loading, name, year } : { data: IronmanData[], loading?: boolean, name: string, year: string }
+) {
   const [ageGroups, setAgeGroups] = useState<string[]>(["overall"]);
 
   const finishers = data.filter((r: any) => r.EventStatus === 'Finish');
@@ -130,13 +132,23 @@ export default function Charts({ data, loading } : { data: IronmanData[], loadin
     elapsed: convertSecondsToTime(bin.x0),
     "Number of people": bin.length,
   }));
+
+  const download = () => {
+    const jsonData = JSON.stringify(data);
+    const blob = new Blob([jsonData], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${name} ${year}.json`;
+    link.click();
+  }
   
   return (
     <div>
       <div className="mt-6">
         <div className="flex gap-3 flex-row mt-6">
           <AgeGroupMultiSelect className="sm:ml-auto sm:max-w-[240px]" selected={ageGroups} onChange={setAgeGroups}/>
-          <Button icon={DownloadIcon} className="hidden sm:flex">Download</Button>
+          <Button icon={DownloadIcon} className="hidden sm:flex" onClick={download}>Download</Button>
         </div>
       </div>
       <div className="grid md:grid-cols-2">

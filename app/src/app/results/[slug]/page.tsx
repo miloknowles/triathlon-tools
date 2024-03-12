@@ -48,7 +48,7 @@ export default function Page({ params }: { params: { slug: string } }) {
       </div>
 
       <Heading size={{initial: "7", sm: "8"}} className="mt-9">Field Results</Heading>
-      <Charts data={data?.data || []} loading={isLoading}/>
+      <Charts data={data?.data || []} loading={isLoading} name={raceName || "Results"} year={year || "YYYY"}/>
 
       <Heading size={{initial: "7", sm: "8"}} className="mt-9">Individual Results</Heading>
       <ResultsTable data={data?.data || []} />
