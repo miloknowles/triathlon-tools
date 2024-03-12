@@ -78,12 +78,11 @@ export default function RaceTable({ data }: { data: RaceData[] }) {
           icon={MagnifyingGlassIcon}
           placeholder="Search..."
           value={query}
-          onValueChange={(e) => setQuery(e.target.value)}
+          onValueChange={setQuery}
         />
         <SearchSelect
           className="sm:max-w-[240px]"
           placeholder="Filter by distance"
-          // defaultValue="all"
           value={series}
           // @ts-ignore
           onValueChange={setSeries}

@@ -129,7 +129,6 @@ export default function ResultsTable({ data }: { data: IronmanData[] }) {
           <SearchSelectItem value="overall">Rank Overall</SearchSelectItem>
           <SearchSelectItem value="group">Rank by Age Group</SearchSelectItem>
         </SearchSelect>
-        {/* <Button icon={DownloadIcon}>Download</Button> */}
       </div>
       <Table className="mt-3">
         <TableHead>

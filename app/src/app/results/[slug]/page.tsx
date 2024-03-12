@@ -32,7 +32,7 @@ export default function Page({ params }: { params: { slug: string } }) {
     }
   }, [years]);
 
-  const { data, error, isLoading, isValidating } = useSWR(subeventId ? `${baseUrl}/results/${subeventId}.json` : null, fetcher);
+  const { data, error, isLoading } = useSWR(subeventId ? `${baseUrl}/results/${subeventId}.json` : null, fetcher);
   
   return (
     <div className="px-3 container max-w-screen-xl py-3 sm:py-9 min-h-screen">
