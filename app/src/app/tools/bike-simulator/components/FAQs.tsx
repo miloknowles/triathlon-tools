@@ -10,7 +10,6 @@ import Image from "next/image";
 
 
 export default function FAQs() {
-
   return (
     <Flex direction="column" gap="6">
     <Heading size="7">FAQs</Heading>

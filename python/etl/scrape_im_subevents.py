@@ -44,6 +44,7 @@ def crawl(url) -> list[tuple[str, str]]:
   # Next, we visit each subevent URL and extract the subevent ID from the <iframe> that is loaded.
   info = []
   for url in subevent_urls:
+    print("Scraping URL:", url)
     r = requests.get(url, timeout=10)
     soup = BeautifulSoup(r.text, "html.parser")
 
@@ -54,7 +55,8 @@ def crawl(url) -> list[tuple[str, str]]:
       subevent_id = iframe["src"].split("/")[-1]
       r = requests.get(
         f"https://api.competitor.com/public/events/{subevent_id}",
-        headers={"wtc_priv_key": API_KEY}
+        headers={"wtc_priv_key": API_KEY},
+        timeout=10,
       )
       year = r.json()["EventYear"]
 
@@ -72,8 +74,11 @@ def pipeline(row: dict):
   series = row["series"]
   results_url = row["results_url"]
 
+  print("-------------------------------------")
   print("Processing", name, series, results_url)
   subevent_info = crawl(results_url)
+
+  print(f"Found {len(subevent_info)} subevents")
 
   df = dict(subevent_id=[], results_url=[], name=[], series=[], year=[])
 
@@ -85,23 +90,25 @@ def pipeline(row: dict):
     df["series"].append(series)
     df["year"].append(int(year))
 
-  _lock.acquire()
+  if len(df) == 0:
+    return
 
-  # If the file already exists, we need to merge the new data with the old data.
-  merged = pd.DataFrame(df)
+  print("Writing CSV")
+  with _lock:
+    # If the file already exists, we need to merge the new data with the old data.
+    merged = pd.DataFrame(df)
 
-  if os.path.exists(tasks_folder("im/subevents.csv")):
-    existing = pd.read_csv(tasks_folder("im/subevents.csv"))
-    before = len(existing)
-    merged = pd.concat([existing, merged]).drop_duplicates()
-    after = len(merged)
-    print(f"Merged {before} existing subevents with {len(df)} new subevents. Now we have {after} subevents.")
-  
-  # Ensure that the year is an integer.
-  merged.year = merged.year.astype(int)
-  merged.to_csv(tasks_folder("im/subevents.csv"), index=False)
-
-  _lock.release()
+    if os.path.exists(tasks_folder("im/subevents.csv")):
+      existing = pd.read_csv(tasks_folder("im/subevents.csv"))
+      before = len(existing)
+      merged = pd.concat([existing, merged]).drop_duplicates()
+      after = len(merged)
+      print(f"Merged {before} existing subevents with {len(df)} new subevents. Now we have {after} subevents.")
+    
+    # Ensure that the year is an integer.
+    merged.year = merged.year.astype(int)
+    merged.to_csv(tasks_folder("im/subevents.csv"), index=False)
+  print("DONE")
 
 
 def main():
@@ -109,7 +116,8 @@ def main():
   from argparse import ArgumentParser
   parser = ArgumentParser()
   parser.add_argument("--t", type=int, default=4, help="The number of threads to use")
-  parser.add_argument("--skip-existing", action="store_true", help="Skip races that have already been scraped. Don't use this if you want to get all of the latest data.")
+  parser.add_argument("--skip-existing", action="store_true",
+                      help="Skip races that have already been scraped. Don't use this if you want to get all of the latest data.")
   args = parser.parse_args()
 
   # Load in all of the races. For each race, we'll find all of the subevents,

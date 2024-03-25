@@ -24,7 +24,9 @@ interface RaceData {
 
 
 export default function RaceTable({ data }: { data: RaceData[] }) {
-  const [series, setSeries] = useState<"all" | "IRONMAN" | "IRONMAN-70.3" | "5150-Triathlon-Series" | undefined>(undefined);
+  const [series, setSeries] = useState<
+    "all" | "IRONMAN" | "IRONMAN-70.3" | "5150-Triathlon-Series" | undefined
+  >("IRONMAN-70.3");
   const [page, setPage] = useState(0);
   const [query, setQuery] = useState<string | undefined>(undefined);
 
