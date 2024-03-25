@@ -10,11 +10,11 @@ export default function Tool() {
   const [units, setUnits] = useState<"imperial" | "metric">("metric");
 
   return (
-    <main className="container max-w-screen-2xl min-h-screen py-5 gap-8 flex flex-col">
+    <div className="container max-w-screen-2xl min-h-screen py-9 gap-8 flex flex-col">
       <Toolbar units={units} setUnits={setUnits}/>
       <Separator size="4"/>
       <ResultsDisplay units={units}/>
       <FAQs/>
-    </main>
+    </div>
   );
 }

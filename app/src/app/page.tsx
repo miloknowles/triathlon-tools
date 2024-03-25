@@ -1,3 +1,4 @@
+import Footer from "@/components/Footer";
 import { Avatar, Container, Flex, Grid, Heading, Section } from "@radix-ui/themes";
 
 import { Metadata } from "next";
@@ -15,7 +16,7 @@ const MenuCard = (props: { t: string, d: string, abbrev: string, color?: string,
   <Link href={props.href}>
   <button
     className="
-      flex gap-4 items-center text-left select-none space-y-1
+      flex gap-4 items-center text-left select-none space-y-1 p-3 max-w-[450px]
       rounded-xl leading-none no-underline outline-none
       transition-colors hover:bg-accent hover:text-accent-foreground
     "
@@ -33,6 +34,7 @@ const MenuCard = (props: { t: string, d: string, abbrev: string, color?: string,
 );
 
 
+
 export default function Page() {
   return (
     <main className="min-h-screen">
@@ -47,7 +49,7 @@ export default function Page() {
               If you'd like to contribute to this open-source project, check out the <a className="text-primary" href="https://github.com/miloknowles/triathlon-tools">repository on Github.</a>
             </p>
           </Flex>
-          <Grid columns={{initial: "1", md: "3"}} mt="6" gap="6">
+          <Grid columns={{initial: "1", md: "1"}} mt="6" gap="6">
             <MenuCard
               href="/tools/bike-simulator"
               abbrev="BSP"
