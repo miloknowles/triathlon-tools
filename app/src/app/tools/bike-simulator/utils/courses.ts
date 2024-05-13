@@ -146,6 +146,13 @@ export const COURSES = [
     url: "/courses/IM_Mont_Tremblant_70.3.json",
     origin: "https://ridewithgps.com/routes/3797415",
   },
+  {
+    value: "patriot_half_2023",
+    label: "Patriot Half (2023 Course)",
+    emoji: "🇺🇸",
+    url: "/courses/Patriot_Half_2023.json",
+    origin: "https://www.strava.com/routes/3043598634032057304",
+  },
   // {
   //   value: "nice_703",
   //   label: "Nice 70.3",
