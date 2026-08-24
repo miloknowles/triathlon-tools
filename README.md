@@ -4,7 +4,7 @@ This codebase supports a set of free tools for data-driven triathlon training an
 
 ## Overview
 
-The React/Next.js app can be found in the `app/` folder. It's hosted on Vercel, and is built using components from [shadcn/ui](https://ui.shadcn.com/), [Radix UI](https://www.radix-ui.com/), and [Tremor](https://www.tremor.so/components).
+The bike split predictor is a Next.js 16 app in the `app/` folder. It's hosted on Vercel and built with Tailwind CSS, [shadcn/ui](https://ui.shadcn.com/), and Base UI.
 
 Supporting backend code is in `python/`. Right now, all of the analysis runs client-side, but there may be a Python API to support some computations in the future.
 
