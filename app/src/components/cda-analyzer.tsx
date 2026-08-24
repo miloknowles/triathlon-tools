@@ -22,8 +22,10 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { RideMap } from "@/components/ride-map"
 import { analyzeCda, formatElapsed, type AnalysisSettings, type CdaAnalysis } from "@/lib/cda-analysis"
 import { MAX_FIT_BYTES, parseFitFile, type ImportedRide } from "@/lib/fit-import"
+import { gpsSamples, nearestGpsSample } from "@/lib/ride-map"
 
 type SettingsForm = Omit<AnalysisSettings, "startSeconds" | "endSeconds"> & {
   startMinutes: number
@@ -65,17 +67,31 @@ export function CdaAnalyzer() {
   const [result, setResult] = useState<CdaAnalysis | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [hoveredElapsedSeconds, setHoveredElapsedSeconds] = useState<number | null>(null)
 
   const chartData = useMemo(() => {
     if (!ride) return []
     const stride = Math.max(1, Math.ceil(ride.samples.length / 700))
     return ride.samples.filter((_, index) => index % stride === 0).map((sample) => ({
+      elapsedSeconds: sample.elapsedSeconds,
       minute: sample.elapsedSeconds / 60,
       power: sample.powerWatts,
       speed: sample.speedMps === null ? null : sample.speedMps * 3.6,
       altitude: sample.altitudeMeters,
     }))
   }, [ride])
+
+  const rideGpsSamples = useMemo(() => gpsSamples(ride?.samples ?? []), [ride])
+  const hoverSample = useMemo(
+    () => hoveredElapsedSeconds === null ? null : nearestGpsSample(rideGpsSamples, hoveredElapsedSeconds),
+    [hoveredElapsedSeconds, rideGpsSamples]
+  )
+
+  function updateHoveredPosition(state: { activeTooltipIndex?: number | string | null }) {
+    const index = Number(state.activeTooltipIndex)
+    const datum = Number.isInteger(index) ? chartData[index] : undefined
+    setHoveredElapsedSeconds(datum?.elapsedSeconds ?? null)
+  }
 
   async function importFile(file: File | undefined) {
     if (!file) return
@@ -85,6 +101,7 @@ export function CdaAnalyzer() {
       const imported = await parseFitFile(file)
       const endMinutes = imported.durationSeconds / 60
       setRide(imported)
+      setHoveredElapsedSeconds(null)
       setSettings((current) => ({ ...current, startMinutes: 0, endMinutes }))
       setResult(null)
     } catch (caught) {
@@ -120,15 +137,13 @@ export function CdaAnalyzer() {
     setRide(null)
     setResult(null)
     setError(null)
+    setHoveredElapsedSeconds(null)
   }
 
   return (
     <main id="cda-analyzer" className="mx-auto flex w-full max-w-[88rem] flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8">
       <section className="max-w-3xl space-y-3">
-        <div className="flex items-center gap-2 text-sm font-medium text-primary">
-          <Activity className="size-4" /> Race-file aerodynamics
-        </div>
-        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Estimate CdA from a FIT ride</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Estimate CdA from a FIT ride</h1>
         <p className="text-base leading-7 text-muted-foreground">
           Find straight, mostly flat windows in your power file and estimate an effective race-position CdA. Opposite-direction
           windows are used to estimate the wind that best reconciles the data.
@@ -147,7 +162,9 @@ export function CdaAnalyzer() {
       <Card>
         <CardHeader>
           <CardTitle>1. Import your ride</CardTitle>
-          <CardDescription>The FIT file is decoded in this browser and is never uploaded.</CardDescription>
+          <CardDescription>
+            The FIT file stays in your browser. When a route is shown, OpenFreeMap receives normal tile requests for that geographic area.
+          </CardDescription>
           {ride && (
             <CardAction>
               <Button variant="ghost" size="sm" onClick={removeRide}><Trash2 /> Remove</Button>
@@ -199,32 +216,48 @@ export function CdaAnalyzer() {
           <Card>
             <CardHeader><CardTitle>Ride overview</CardTitle><CardDescription>Use the timeline to identify a clean race section, then enter its start and end below.</CardDescription></CardHeader>
             <CardContent>
-              <ChartContainer config={chartConfig} className="h-72 w-full">
-                <LineChart data={chartData} margin={{ left: 8, right: 8, top: 8 }}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis dataKey="minute" type="number" domain={["dataMin", "dataMax"]} tickFormatter={(value) => `${Math.round(value)}m`} />
-                  <YAxis yAxisId="power" width={42} tickFormatter={(value) => `${value}`} />
-                  <YAxis yAxisId="speed" orientation="right" width={42} tickFormatter={(value) => `${value}`} />
-                  <ChartTooltip
-                    content={
-                      <ChartTooltipContent
-                        labelFormatter={(_, payload) => {
-                          const minute = payload?.[0]?.payload?.minute
-                          return Number.isFinite(minute) ? `${Number(minute).toFixed(1)} min` : "Ride timeline"
-                        }}
+              <div className={rideGpsSamples.length > 0 ? "grid gap-4 lg:grid-cols-2" : undefined}>
+                <div className="min-w-0">
+                  <ChartContainer
+                    config={chartConfig}
+                    className="h-72 w-full"
+                    onTouchCancel={() => setHoveredElapsedSeconds(null)}
+                  >
+                    <LineChart
+                      data={chartData}
+                      margin={{ left: 8, right: 8, top: 8 }}
+                      onMouseMove={updateHoveredPosition}
+                      onTouchMove={updateHoveredPosition}
+                      onMouseLeave={() => setHoveredElapsedSeconds(null)}
+                      onTouchEnd={() => setHoveredElapsedSeconds(null)}
+                    >
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="minute" type="number" domain={["dataMin", "dataMax"]} tickFormatter={(value) => `${Math.round(value)}m`} />
+                      <YAxis yAxisId="power" width={42} tickFormatter={(value) => `${value}`} />
+                      <YAxis yAxisId="speed" orientation="right" width={42} tickFormatter={(value) => `${value}`} />
+                      <ChartTooltip
+                        content={
+                          <ChartTooltipContent
+                            labelFormatter={(_, payload) => {
+                              const minute = payload?.[0]?.payload?.minute
+                              return Number.isFinite(minute) ? `${Number(minute).toFixed(1)} min` : "Ride timeline"
+                            }}
+                          />
+                        }
                       />
-                    }
-                  />
-                  <ReferenceArea x1={settings.startMinutes} x2={settings.endMinutes} fill="var(--color-power)" fillOpacity={0.07} />
-                  <Line yAxisId="power" dataKey="power" type="monotone" stroke="var(--color-power)" dot={false} strokeWidth={1.2} connectNulls />
-                  <Line yAxisId="speed" dataKey="speed" type="monotone" stroke="var(--color-speed)" dot={false} strokeWidth={1.2} connectNulls />
-                </LineChart>
-              </ChartContainer>
-              <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-indigo-600" /> Power (W)</span>
-                <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-emerald-600" /> Speed (km/h)</span>
-                {!ride.hasGps && <span>GPS headings are missing; wind fitting will be limited.</span>}
-                {!ride.hasAltitude && <span>Altitude is missing; flat-road gravity is assumed.</span>}
+                      <ReferenceArea x1={settings.startMinutes} x2={settings.endMinutes} fill="var(--color-power)" fillOpacity={0.07} />
+                      <Line yAxisId="power" dataKey="power" type="monotone" stroke="var(--color-power)" dot={false} strokeWidth={1.2} connectNulls />
+                      <Line yAxisId="speed" dataKey="speed" type="monotone" stroke="var(--color-speed)" dot={false} strokeWidth={1.2} connectNulls />
+                    </LineChart>
+                  </ChartContainer>
+                  <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-indigo-600" /> Power (W)</span>
+                    <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-emerald-600" /> Speed (km/h)</span>
+                    {rideGpsSamples.length === 0 && <span>GPS headings are missing; wind fitting will be limited.</span>}
+                    {!ride.hasAltitude && <span>Altitude is missing; flat-road gravity is assumed.</span>}
+                  </div>
+                </div>
+                {rideGpsSamples.length > 0 && <RideMap samples={ride.samples} hoverSample={hoverSample} />}
               </div>
             </CardContent>
           </Card>

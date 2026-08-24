@@ -16,8 +16,6 @@ type FitRecord = {
   position_long?: number
 }
 
-const SEMICIRCLES_TO_DEGREES = 180 / 2 ** 31
-
 export type ImportedRide = {
   filename: string
   samples: RideSample[]
@@ -55,8 +53,9 @@ export async function parseFitFile(file: File): Promise<ImportedRide> {
       altitudeMeters: Number.isFinite(record.enhanced_altitude ?? record.altitude)
         ? (record.enhanced_altitude ?? record.altitude) as number
         : null,
-      latitudeDegrees: Number.isFinite(record.position_lat) ? (record.position_lat as number) * SEMICIRCLES_TO_DEGREES : null,
-      longitudeDegrees: Number.isFinite(record.position_long) ? (record.position_long as number) * SEMICIRCLES_TO_DEGREES : null,
+      // fit-file-parser converts fields declared in FIT semicircles to degrees.
+      latitudeDegrees: Number.isFinite(record.position_lat) ? record.position_lat as number : null,
+      longitudeDegrees: Number.isFinite(record.position_long) ? record.position_long as number : null,
     }))
     .filter((sample) => sample.elapsedSeconds >= 0)
 
