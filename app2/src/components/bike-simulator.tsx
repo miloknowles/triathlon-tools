@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react"
 import {
   Activity,
-  Bike,
   Clock3,
   Download,
   ExternalLink,
@@ -29,15 +28,16 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { courseJson, courseJsonFilename, MAX_GPX_BYTES, parseGpx } from "@/lib/course-import"
@@ -119,10 +119,6 @@ function formatChartTime(totalSeconds: number) {
   const hours = Math.floor(totalSeconds / 3600)
   const minutes = Math.floor((totalSeconds % 3600) / 60)
   return `${hours}:${String(minutes).padStart(2, "0")}`
-}
-
-function average(values: number[]) {
-  return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0
 }
 
 function NumberField({
@@ -298,12 +294,12 @@ export function BikeSimulator() {
     const avgSpeedMps = elapsed ? results.totalDistanceMeters / elapsed : 0
     return {
       elapsed,
+      timeOutOfRacePosition: elapsed * (1 - values.racePositionPercent / 100),
       averageSpeed: avgSpeedMps * (units === "metric" ? 3.6 : 2.23694),
       distance: results.totalDistanceMeters * (units === "metric" ? 0.001 : 0.000621371),
       gain: results.totalGainMeters * (units === "metric" ? 1 : 3.28084),
-      drag: average(results.states.map((state) => state.dragWatts)),
     }
-  }, [results, units])
+  }, [results, units, values.racePositionPercent])
 
   const chartData = useMemo(() => {
     if (!results) return []
@@ -359,23 +355,27 @@ export function BikeSimulator() {
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 <Field>
                   <FieldLabel htmlFor="course">Race course</FieldLabel>
-                  <Select
+                  <Combobox
                     items={courseSelectItems}
-                    value={values.courseName}
-                    onValueChange={(value) => selectCourse(value ?? "")}
+                    itemToStringValue={(course) => course.label}
+                    value={courseSelectItems.find((course) => course.value === values.courseName) ?? null}
+                    onValueChange={(course) => {
+                      if (course) selectCourse(course.value)
+                    }}
+                    autoHighlight
                   >
-                    <SelectTrigger id="course" className="w-full">
-                      <SelectValue placeholder="Choose a course" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {COURSES.map((course) => (
-                        <SelectItem key={course.value} value={course.value}>{course.emoji} {course.label}</SelectItem>
-                      ))}
-                      {importedCourse ? (
-                        <SelectItem value={CUSTOM_COURSE_VALUE}>Imported: {importedCourse.filename}</SelectItem>
-                      ) : null}
-                    </SelectContent>
-                  </Select>
+                    <ComboboxInput id="course" className="w-full" placeholder="Search courses..." />
+                    <ComboboxContent>
+                      <ComboboxEmpty>No courses found.</ComboboxEmpty>
+                      <ComboboxList>
+                        {(course) => (
+                          <ComboboxItem key={course.value} value={course}>
+                            {course.label}
+                          </ComboboxItem>
+                        )}
+                      </ComboboxList>
+                    </ComboboxContent>
+                  </Combobox>
                   {selectedCourse?.kind === "preset" ? (
                     <FieldDescription>
                       <a href={selectedCourse.course.origin} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
@@ -395,7 +395,7 @@ export function BikeSimulator() {
                   <FieldDescription>Processed locally—your file isn’t uploaded.</FieldDescription>
                 </Field>
                 <NumberField id="temperature" label="Temperature" unit={units === "metric" ? "°C" : "°F"} description="Warmer air is less dense and creates slightly less aerodynamic drag." value={temperature} step={1} min={units === "metric" ? -18 : 0} max={units === "metric" ? 45 : 113} onChange={(value) => update("ambientTempCelsius", units === "metric" ? value : (value - 32) / 1.8)} />
-                <NumberField id="humidity" label="Relative humidity" unit="%" description="Humid air is slightly less dense than dry air at the same temperature." value={values.relativeHumidity} step={1} min={0} max={100} onChange={(value) => update("relativeHumidity", value)} />
+                <NumberField id="humidity" label="Relative humidity" unit="%" description="Humid air is slightly less dense than dry air at the same temperature." value={values.relativeHumidity} step={5} min={0} max={100} onChange={(value) => update("relativeHumidity", value)} />
                 {importError ? (
                   <Alert variant="destructive" aria-live="polite" className="sm:col-span-2 xl:col-span-4">
                     <TriangleAlert />
@@ -430,8 +430,8 @@ export function BikeSimulator() {
               </div>
               <div className="grid gap-5 sm:grid-cols-3">
                 <NumberField id="power" label="Race power" unit="W" value={values.avgPowerWatts} step={5} min={50} max={1000} onChange={(value) => update("avgPowerWatts", value)} />
-                <NumberField id="rider-mass" label="Rider mass" unit={units === "metric" ? "kg" : "lb"} value={riderMass} step={0.5} min={units === "metric" ? 10 : 22} max={units === "metric" ? 200 : 440} onChange={(value) => update("massRiderKg", units === "metric" ? value : value / 2.20462)} />
-                <NumberField id="bike-mass" label="Bike mass" unit={units === "metric" ? "kg" : "lb"} value={bikeMass} step={0.5} min={units === "metric" ? 1 : 2.2} max={units === "metric" ? 30 : 66} onChange={(value) => update("massBikeKg", units === "metric" ? value : value / 2.20462)} />
+                <NumberField id="rider-mass" label="Rider mass" unit={units === "metric" ? "kg" : "lb"} value={riderMass} step={1} min={units === "metric" ? 10 : 22} max={units === "metric" ? 200 : 440} onChange={(value) => update("massRiderKg", units === "metric" ? value : value / 2.20462)} />
+                <NumberField id="bike-mass" label="Bike mass" unit={units === "metric" ? "kg" : "lb"} value={bikeMass} step={1} min={units === "metric" ? 1 : 2.2} max={units === "metric" ? 30 : 66} onChange={(value) => update("massBikeKg", units === "metric" ? value : value / 2.20462)} />
               </div>
             </section>
 
@@ -500,10 +500,10 @@ export function BikeSimulator() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
               {[
                 { label: "Predicted split", value: formatTime(summary.elapsed), unit: "elapsed", icon: Clock3 },
+                { label: "Time out of race position", value: formatTime(summary.timeOutOfRacePosition), unit: "elapsed", icon: Clock3 },
                 { label: "Average speed", value: summary.averageSpeed.toFixed(1), unit: units === "metric" ? "km/h" : "mph", icon: Gauge },
                 { label: "Distance", value: summary.distance.toFixed(1), unit: units === "metric" ? "km" : "mi", icon: Route },
                 { label: "Elevation gain", value: Math.round(summary.gain).toLocaleString(), unit: units === "metric" ? "m" : "ft", icon: Mountain },
-                { label: "Average aero loss", value: summary.drag.toFixed(0), unit: "watts", icon: Bike },
               ].map((metric) => (
                 <Card key={metric.label} size="sm">
                   <CardHeader>
