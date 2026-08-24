@@ -5,20 +5,30 @@ import {
   Activity,
   Bike,
   Clock3,
+  Download,
   ExternalLink,
   Gauge,
   Info,
   LoaderCircle,
   Mountain,
   Route,
+  Trash2,
   TriangleAlert,
+  Upload,
 } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, Line, LineChart, XAxis, YAxis } from "recharts"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart"
 import {
   Dialog,
   DialogContent,
@@ -39,9 +49,10 @@ import {
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { courseJson, courseJsonFilename, MAX_GPX_BYTES, parseGpx } from "@/lib/course-import"
 import { COURSES } from "@/lib/courses"
 import { PRESETS } from "@/lib/presets"
-import { simulate, type SimulationResult } from "@/lib/simulator"
+import { loadCourse, simulate, type CourseData, type SimulationResult } from "@/lib/simulator"
 
 type Units = "metric" | "imperial"
 
@@ -69,9 +80,39 @@ const DEFAULTS: FormValues = {
   relativeHumidity: 50,
 }
 
+const COURSE_SELECT_ITEMS = COURSES.map((course) => ({
+  value: course.value,
+  label: `${course.emoji} ${course.label}`,
+}))
+
+const CUSTOM_COURSE_VALUE = "__imported_course__"
+
+type ImportedCourse = {
+  filename: string
+  data: CourseData
+}
+
 const chartConfig = {
-  altitude: { label: "Elevation", color: "var(--chart-1)" },
-  speed: { label: "Speed", color: "var(--chart-2)" },
+  altitude: {
+    label: "Elevation",
+    theme: { light: "#059669", dark: "#34d399" },
+  },
+  speed: {
+    label: "Speed",
+    theme: { light: "#4f46e5", dark: "#818cf8" },
+  },
+  dragWatts: {
+    label: "Aerodynamic drag",
+    theme: { light: "#2563eb", dark: "#60a5fa" },
+  },
+  rollingWatts: {
+    label: "Rolling resistance",
+    theme: { light: "#e11d48", dark: "#fb7185" },
+  },
+  gravityWatts: {
+    label: "Gravity",
+    theme: { light: "#d97706", dark: "#fbbf24" },
+  },
 } satisfies ChartConfig
 
 function formatTime(totalSeconds: number) {
@@ -79,6 +120,12 @@ function formatTime(totalSeconds: number) {
   const minutes = Math.floor((totalSeconds % 3600) / 60)
   const seconds = Math.floor(totalSeconds % 60)
   return [hours, minutes, seconds].map((value) => String(value).padStart(2, "0")).join(":")
+}
+
+function formatChartTime(totalSeconds: number) {
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  return `${hours}:${String(minutes).padStart(2, "0")}`
 }
 
 function average(values: number[]) {
@@ -167,11 +214,66 @@ export function BikeSimulator() {
   const [results, setResults] = useState<SimulationResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [importError, setImportError] = useState<string | null>(null)
+  const [importedCourse, setImportedCourse] = useState<ImportedCourse | null>(null)
 
-  const selectedCourse = COURSES.find((course) => course.value === values.courseName)
+  const presetCourse = COURSES.find((course) => course.value === values.courseName)
+  const selectedCourse = values.courseName === CUSTOM_COURSE_VALUE && importedCourse
+    ? { kind: "custom" as const, label: importedCourse.filename, data: importedCourse.data }
+    : presetCourse
+      ? { kind: "preset" as const, label: presetCourse.label, course: presetCourse }
+      : null
+  const courseSelectItems = importedCourse
+    ? [...COURSE_SELECT_ITEMS, { value: CUSTOM_COURSE_VALUE, label: `Imported: ${importedCourse.filename}` }]
+    : COURSE_SELECT_ITEMS
 
   function update<Key extends keyof FormValues>(key: Key, value: FormValues[Key]) {
     setValues((current) => ({ ...current, [key]: value }))
+  }
+
+  function selectCourse(value: string) {
+    update("courseName", value)
+    setResults(null)
+    setError(null)
+  }
+
+  async function importGpx(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+
+    setImportError(null)
+    try {
+      if (file.size > MAX_GPX_BYTES) throw new Error("GPX files must be 20 MB or smaller.")
+      const data = parseGpx(await file.text(), file.size)
+      setImportedCourse({ filename: file.name, data })
+      setValues((current) => ({ ...current, courseName: CUSTOM_COURSE_VALUE }))
+      setResults(null)
+      setError(null)
+    } catch (caught) {
+      setImportError(caught instanceof Error ? caught.message : "The GPX file could not be imported.")
+    }
+  }
+
+  function removeImportedCourse() {
+    setImportedCourse(null)
+    setImportError(null)
+    setResults(null)
+    setError(null)
+    setValues((current) => ({
+      ...current,
+      courseName: current.courseName === CUSTOM_COURSE_VALUE ? DEFAULTS.courseName : current.courseName,
+    }))
+  }
+
+  function downloadImportedCourse() {
+    if (!importedCourse) return
+    const blobUrl = URL.createObjectURL(new Blob([courseJson(importedCourse.data)], { type: "application/json" }))
+    const link = document.createElement("a")
+    link.href = blobUrl
+    link.download = courseJsonFilename(importedCourse.filename)
+    link.click()
+    URL.revokeObjectURL(blobUrl)
   }
 
   async function runSimulation(event: React.FormEvent<HTMLFormElement>) {
@@ -183,7 +285,10 @@ export function BikeSimulator() {
     await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
 
     try {
-      const nextResults = await simulate({ ...values, url: selectedCourse.url })
+      const course = selectedCourse.kind === "custom"
+        ? selectedCourse.data
+        : await loadCourse(selectedCourse.course.url)
+      const nextResults = simulate(course, values)
       setResults(nextResults)
       requestAnimationFrame(() => document.querySelector("#results")?.scrollIntoView({ behavior: "smooth", block: "start" }))
     } catch (caught) {
@@ -213,9 +318,12 @@ export function BikeSimulator() {
     return results.states
       .filter((_, index) => index % takeEvery === 0)
       .map((state) => ({
-        distance: state.x * (units === "metric" ? 0.001 : 0.000621371),
+        elapsed: state.t,
         altitude: state.alt * (units === "metric" ? 1 : 3.28084),
         speed: state.v * (units === "metric" ? 3.6 : 2.23694),
+        dragWatts: state.dragWatts,
+        rollingWatts: state.rollingWatts,
+        gravityWatts: state.gravityWatts,
       }))
   }, [results, units])
 
@@ -272,7 +380,11 @@ export function BikeSimulator() {
               </div>
               <Field>
                 <FieldLabel htmlFor="course">Race course</FieldLabel>
-                <Select value={values.courseName} onValueChange={(value) => update("courseName", value ?? "")}>
+                <Select
+                  items={courseSelectItems}
+                  value={values.courseName}
+                  onValueChange={(value) => selectCourse(value ?? "")}
+                >
                   <SelectTrigger id="course" className="w-full">
                     <SelectValue placeholder="Choose a course" />
                   </SelectTrigger>
@@ -280,21 +392,53 @@ export function BikeSimulator() {
                     {COURSES.map((course) => (
                       <SelectItem key={course.value} value={course.value}>{course.emoji} {course.label}</SelectItem>
                     ))}
+                    {importedCourse ? (
+                      <SelectItem value={CUSTOM_COURSE_VALUE}>Imported: {importedCourse.filename}</SelectItem>
+                    ) : null}
                   </SelectContent>
                 </Select>
-                {selectedCourse ? (
+                {selectedCourse?.kind === "preset" ? (
                   <FieldDescription>
-                    <a href={selectedCourse.origin} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
+                    <a href={selectedCourse.course.origin} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
                       View source route <ExternalLink className="size-3" />
                     </a>
                   </FieldDescription>
                 ) : null}
               </Field>
-              <Alert>
-                <Route />
-                <AlertTitle>Need another course?</AlertTitle>
-                <AlertDescription>Course imports can be added in a future pass.</AlertDescription>
-              </Alert>
+              <Field>
+                <FieldLabel htmlFor="gpx-file">Import GPX</FieldLabel>
+                <Input
+                  id="gpx-file"
+                  type="file"
+                  accept=".gpx,application/gpx+xml,application/xml,text/xml"
+                  onChange={importGpx}
+                />
+                <FieldDescription>Processed locally—your file isn’t uploaded.</FieldDescription>
+              </Field>
+              {importError ? (
+                <Alert variant="destructive" aria-live="polite">
+                  <TriangleAlert />
+                  <AlertTitle>Import failed</AlertTitle>
+                  <AlertDescription>{importError}</AlertDescription>
+                </Alert>
+              ) : null}
+              {importedCourse ? (
+                <Alert>
+                  <Upload />
+                  <AlertTitle>{importedCourse.filename}</AlertTitle>
+                  <AlertDescription>
+                    {(importedCourse.data.meta.totalDistanceMeters / 1000).toFixed(1)} km · {Math.round(importedCourse.data.meta.totalGainMeters).toLocaleString()} m gain · {importedCourse.data.data.length.toLocaleString()} points
+                    <span className="mt-3 flex flex-wrap gap-2">
+                      <Button type="button" size="xs" variant="outline" onClick={downloadImportedCourse}>
+                        <Download /> Download course JSON
+                      </Button>
+                      <Button type="button" size="xs" variant="ghost" onClick={removeImportedCourse}>
+                        <Trash2 /> Remove
+                      </Button>
+                    </span>
+                  </AlertDescription>
+                </Alert>
+              ) : null}
             </FieldGroup>
 
             <FieldGroup>
@@ -385,11 +529,11 @@ export function BikeSimulator() {
               ))}
             </div>
 
-            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div className="mt-4 grid gap-4">
               <Card>
                 <CardHeader>
                   <CardTitle>Course profile</CardTitle>
-                  <CardDescription>Elevation across the route</CardDescription>
+                  <CardDescription>Elevation over elapsed time ({units === "metric" ? "m" : "ft"})</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ChartContainer config={chartConfig} className="h-72 w-full aspect-auto">
@@ -401,11 +545,11 @@ export function BikeSimulator() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid vertical={false} />
-                      <XAxis dataKey="distance" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => Number(value).toFixed(0)} />
+                      <XAxis dataKey="elapsed" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => formatChartTime(Number(value))} />
                       <YAxis tickLine={false} axisLine={false} width={42} />
                       <ChartTooltip content={<ChartTooltipContent labelFormatter={(_, payload) => {
-                        const distance = Number(payload?.[0]?.payload?.distance)
-                        return Number.isFinite(distance) ? `${distance.toFixed(1)} ${units === "metric" ? "km" : "mi"}` : ""
+                        const elapsed = Number(payload?.[0]?.payload?.elapsed)
+                        return Number.isFinite(elapsed) ? formatTime(elapsed) : ""
                       }} />} />
                       <Area dataKey="altitude" type="monotone" fill="url(#altitude-fill)" stroke="var(--color-altitude)" />
                     </AreaChart>
@@ -415,20 +559,44 @@ export function BikeSimulator() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Speed profile</CardTitle>
-                  <CardDescription>Predicted speed across the route</CardDescription>
+                  <CardTitle>Velocity</CardTitle>
+                  <CardDescription>Predicted speed over elapsed time ({units === "metric" ? "km/h" : "mph"})</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ChartContainer config={chartConfig} className="h-72 w-full aspect-auto">
                     <LineChart data={chartData} accessibilityLayer>
                       <CartesianGrid vertical={false} />
-                      <XAxis dataKey="distance" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => Number(value).toFixed(0)} />
+                      <XAxis dataKey="elapsed" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => formatChartTime(Number(value))} />
                       <YAxis tickLine={false} axisLine={false} width={42} />
                       <ChartTooltip content={<ChartTooltipContent labelFormatter={(_, payload) => {
-                        const distance = Number(payload?.[0]?.payload?.distance)
-                        return Number.isFinite(distance) ? `${distance.toFixed(1)} ${units === "metric" ? "km" : "mi"}` : ""
+                        const elapsed = Number(payload?.[0]?.payload?.elapsed)
+                        return Number.isFinite(elapsed) ? formatTime(elapsed) : ""
                       }} />} />
                       <Line dataKey="speed" type="monotone" stroke="var(--color-speed)" strokeWidth={2} dot={false} />
+                    </LineChart>
+                  </ChartContainer>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Power losses</CardTitle>
+                  <CardDescription>Aerodynamic, rolling, and gravitational power over elapsed time (W)</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ChartContainer config={chartConfig} className="h-72 w-full aspect-auto">
+                    <LineChart data={chartData} accessibilityLayer>
+                      <CartesianGrid vertical={false} />
+                      <XAxis dataKey="elapsed" tickLine={false} axisLine={false} tickMargin={8} tickFormatter={(value) => formatChartTime(Number(value))} />
+                      <YAxis tickLine={false} axisLine={false} width={42} />
+                      <ChartTooltip content={<ChartTooltipContent labelFormatter={(_, payload) => {
+                        const elapsed = Number(payload?.[0]?.payload?.elapsed)
+                        return Number.isFinite(elapsed) ? formatTime(elapsed) : ""
+                      }} />} />
+                      <ChartLegend content={<ChartLegendContent />} />
+                      <Line dataKey="dragWatts" type="monotone" stroke="var(--color-dragWatts)" strokeWidth={2} dot={false} />
+                      <Line dataKey="rollingWatts" type="monotone" stroke="var(--color-rollingWatts)" strokeWidth={2} dot={false} />
+                      <Line dataKey="gravityWatts" type="monotone" stroke="var(--color-gravityWatts)" strokeWidth={2} dot={false} />
                     </LineChart>
                   </ChartContainer>
                 </CardContent>

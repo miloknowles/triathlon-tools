@@ -1,5 +1,4 @@
 export type SimulatorParams = {
-  url: string
   avgPowerWatts: number
   avgCdA: number
   avgCrr: number
@@ -12,9 +11,9 @@ export type SimulatorParams = {
   timestep?: number
 }
 
-type CoursePoint = { x: number; y: number; a: number }
+export type CoursePoint = { x: number; y: number; a: number }
 
-type CourseData = {
+export type CourseData = {
   data: CoursePoint[]
   meta: { totalDistanceMeters: number; totalGainMeters: number }
 }
@@ -74,11 +73,18 @@ function airDensity(altitude: number, temperatureCelsius: number, humidityPercen
   return 0.0034848 * (pressure - 0.003796 * (humidityPercent / 100) * saturationPressure) / temperatureKelvin
 }
 
-export async function simulate(params: SimulatorParams): Promise<SimulationResult> {
-  const response = await fetch(params.url)
+export async function loadCourse(url: string): Promise<CourseData> {
+  const response = await fetch(url)
   if (!response.ok) throw new Error("The selected course could not be loaded.")
 
   const course = (await response.json()) as CourseData
+  if (!Array.isArray(course.data) || course.data.length < 2) {
+    throw new Error("The selected course does not contain enough data.")
+  }
+  return course
+}
+
+export function simulate(course: CourseData, params: SimulatorParams): SimulationResult {
   if (course.data.length < 2) throw new Error("The selected course does not contain enough data.")
 
   const timestep = params.timestep ?? 0.2
