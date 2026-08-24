@@ -15,4 +15,9 @@ export const PRESETS = {
     { label: "Optimized", value: 0.23 },
     { label: "Pro", value: 0.2 },
   ],
+  racePosition: [
+    { label: "Typical 95%", value: 95 },
+    { label: "Dialed 99%", value: 99 },
+    { label: "Perfect 100%", value: 100 },
+  ],
 } as const

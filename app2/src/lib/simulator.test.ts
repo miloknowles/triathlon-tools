@@ -13,6 +13,7 @@ const course: CourseData = {
 const params: SimulatorParams = {
   avgPowerWatts: 250,
   avgCdA: 0.28,
+  racePositionPercent: 95,
   avgCrr: 0.00375,
   lossDrivetrain: 4.7,
   massBikeKg: 10,
@@ -47,5 +48,26 @@ describe("course simulation sources", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("no", { status: 404 }))
     await expect(loadCourse("/missing.json")).rejects.toThrow("could not be loaded")
     expect(() => simulate({ data: [], meta: { totalDistanceMeters: 0, totalGainMeters: 0 } }, params)).toThrow("enough data")
+  })
+
+  it("increases predicted time as time in race position decreases", () => {
+    const comparisonCourse: CourseData = {
+      data: [
+        { x: 0, y: 10, a: 0 },
+        { x: 10_000, y: 10, a: 0 },
+      ],
+      meta: { totalDistanceMeters: 10_000, totalGainMeters: 0 },
+    }
+    const perfect = simulate(comparisonCourse, { ...params, racePositionPercent: 100 })
+    const dialed = simulate(comparisonCourse, { ...params, racePositionPercent: 99 })
+    const typical = simulate(comparisonCourse, { ...params, racePositionPercent: 95 })
+
+    expect(dialed.states.at(-1)?.t).toBeGreaterThan(perfect.states.at(-1)?.t ?? 0)
+    expect(typical.states.at(-1)?.t).toBeGreaterThan(dialed.states.at(-1)?.t ?? 0)
+  })
+
+  it("rejects race-position percentages outside 0 to 100", () => {
+    expect(() => simulate(course, { ...params, racePositionPercent: -1 })).toThrow("between 0% and 100%")
+    expect(() => simulate(course, { ...params, racePositionPercent: 101 })).toThrow("between 0% and 100%")
   })
 })

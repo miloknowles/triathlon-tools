@@ -1,6 +1,7 @@
 export type SimulatorParams = {
   avgPowerWatts: number
   avgCdA: number
+  racePositionPercent: number
   avgCrr: number
   lossDrivetrain: number
   massBikeKg: number
@@ -40,6 +41,7 @@ const MOLAR_MASS_AIR = 0.0289644
 const GAS_CONSTANT = 8.3144598
 const SEA_LEVEL_PRESSURE = 101325
 const CELSIUS_TO_KELVIN = 273.15
+const OUT_OF_POSITION_CDA_MULTIPLIER = 1.25
 
 function currentIndices(data: CoursePoint[], start: number, distance: number) {
   let index = start
@@ -86,9 +88,16 @@ export async function loadCourse(url: string): Promise<CourseData> {
 
 export function simulate(course: CourseData, params: SimulatorParams): SimulationResult {
   if (course.data.length < 2) throw new Error("The selected course does not contain enough data.")
+  if (!Number.isFinite(params.racePositionPercent) || params.racePositionPercent < 0 || params.racePositionPercent > 100) {
+    throw new Error("Time in race position must be between 0% and 100%.")
+  }
 
   const timestep = params.timestep ?? 0.2
   const velocityMin = params.velocityMin ?? 1
+  const racePositionFraction = params.racePositionPercent / 100
+  const effectiveCdA = params.avgCdA * (
+    racePositionFraction + OUT_OF_POSITION_CDA_MULTIPLIER * (1 - racePositionFraction)
+  )
   const totalDistanceMeters = course.data.at(-1)?.x ?? course.meta.totalDistanceMeters
   const totalMassKg = params.massBikeKg + params.massRiderKg
   const states: SimulationState[] = []
@@ -109,7 +118,7 @@ export function simulate(course: CourseData, params: SimulatorParams): Simulatio
     const rho = airDensity(altitude, params.ambientTempCelsius, params.relativeHumidity)
 
     let driveForce = params.avgPowerWatts * (1 - params.lossDrivetrain / 100) / Math.max(velocity, 1)
-    const dragForce = 0.5 * rho * params.avgCdA * velocity ** 2
+    const dragForce = 0.5 * rho * effectiveCdA * velocity ** 2
     const gravityForce = G * totalMassKg * Math.sin(angle)
     const rollingForce = G * totalMassKg * params.avgCrr * Math.cos(angle)
     const minimumForce = dragForce + gravityForce + rollingForce + totalMassKg * (velocityMin - velocity) / timestep

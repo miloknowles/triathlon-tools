@@ -29,14 +29,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { Field, FieldDescription, FieldGroup, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import {
@@ -46,7 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { courseJson, courseJsonFilename, MAX_GPX_BYTES, parseGpx } from "@/lib/course-import"
@@ -60,6 +51,7 @@ type FormValues = {
   courseName: string
   avgPowerWatts: number
   avgCdA: number
+  racePositionPercent: number
   avgCrr: number
   lossDrivetrain: number
   massRiderKg: number
@@ -72,6 +64,7 @@ const DEFAULTS: FormValues = {
   courseName: "santacruz_703",
   avgPowerWatts: 250,
   avgCdA: 0.28,
+  racePositionPercent: 95,
   avgCrr: 0.00375,
   lossDrivetrain: 4.7,
   massRiderKg: 75,
@@ -332,28 +325,13 @@ export function BikeSimulator() {
   const temperature = units === "metric" ? values.ambientTempCelsius : values.ambientTempCelsius * 1.8 + 32
 
   return (
-    <main id="simulator" className="mx-auto w-full max-w-7xl scroll-mt-20 px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+    <main id="simulator" className="mx-auto w-full max-w-[88rem] scroll-mt-20 px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
       <section className="mb-8">
         <div className="max-w-2xl">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Bike Split Predictor</h1>
-            <Dialog>
-              <DialogTrigger render={<Button variant="ghost" size="icon" aria-label="How the simulator works" />}>
-                <Info />
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>How it works</DialogTitle>
-                  <DialogDescription>
-                    The simulator applies your target power to the course elevation profile and models aerodynamic drag,
-                    rolling resistance, gravity, drivetrain loss, and air density at each step.
-                  </DialogDescription>
-                </DialogHeader>
-              </DialogContent>
-            </Dialog>
-          </div>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Bike Split Predictor</h1>
           <p className="mt-3 text-pretty text-base leading-7 text-muted-foreground">
-            Explore how power, equipment, position, and weather change your predicted bike split.
+            The simulator applies your target power to the course elevation profile and models aerodynamic drag,
+            rolling resistance, gravity, drivetrain loss, and air density at each step.
           </p>
         </div>
       </section>
@@ -361,7 +339,7 @@ export function BikeSimulator() {
       <form id="simulation-form" onSubmit={runSimulation}>
         <Card>
           <CardHeader className="border-b">
-            <CardTitle>Simulation inputs</CardTitle>
+            <CardTitle>Simulation Inputs</CardTitle>
             <CardDescription>Start with the defaults, then tune the values to match your race setup.</CardDescription>
             <CardAction>
               <Tabs value={units} onValueChange={(value) => setUnits(value as Units)}>
@@ -372,107 +350,115 @@ export function BikeSimulator() {
               </Tabs>
             </CardAction>
           </CardHeader>
-          <CardContent className="grid gap-8 pt-1 lg:grid-cols-4">
-            <FieldGroup>
+          <CardContent className="divide-y pt-1">
+            <section className="grid gap-6 py-7 first:pt-4 lg:grid-cols-[13rem_minmax(0,1fr)]">
               <div>
-                <p className="mb-1 font-medium">Course</p>
-                <p className="text-sm text-muted-foreground">Choose an elevation profile.</p>
+                <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Course & conditions</h3>
+                <p className="text-sm text-muted-foreground">Choose a profile and set the race-day weather.</p>
               </div>
-              <Field>
-                <FieldLabel htmlFor="course">Race course</FieldLabel>
-                <Select
-                  items={courseSelectItems}
-                  value={values.courseName}
-                  onValueChange={(value) => selectCourse(value ?? "")}
-                >
-                  <SelectTrigger id="course" className="w-full">
-                    <SelectValue placeholder="Choose a course" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COURSES.map((course) => (
-                      <SelectItem key={course.value} value={course.value}>{course.emoji} {course.label}</SelectItem>
-                    ))}
-                    {importedCourse ? (
-                      <SelectItem value={CUSTOM_COURSE_VALUE}>Imported: {importedCourse.filename}</SelectItem>
-                    ) : null}
-                  </SelectContent>
-                </Select>
-                {selectedCourse?.kind === "preset" ? (
-                  <FieldDescription>
-                    <a href={selectedCourse.course.origin} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
-                      View source route <ExternalLink className="size-3" />
-                    </a>
-                  </FieldDescription>
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+                <Field>
+                  <FieldLabel htmlFor="course">Race course</FieldLabel>
+                  <Select
+                    items={courseSelectItems}
+                    value={values.courseName}
+                    onValueChange={(value) => selectCourse(value ?? "")}
+                  >
+                    <SelectTrigger id="course" className="w-full">
+                      <SelectValue placeholder="Choose a course" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {COURSES.map((course) => (
+                        <SelectItem key={course.value} value={course.value}>{course.emoji} {course.label}</SelectItem>
+                      ))}
+                      {importedCourse ? (
+                        <SelectItem value={CUSTOM_COURSE_VALUE}>Imported: {importedCourse.filename}</SelectItem>
+                      ) : null}
+                    </SelectContent>
+                  </Select>
+                  {selectedCourse?.kind === "preset" ? (
+                    <FieldDescription>
+                      <a href={selectedCourse.course.origin} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1">
+                        View source route <ExternalLink className="size-3" />
+                      </a>
+                    </FieldDescription>
+                  ) : null}
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="gpx-file">Import GPX</FieldLabel>
+                  <Input
+                    id="gpx-file"
+                    type="file"
+                    accept=".gpx,application/gpx+xml,application/xml,text/xml"
+                    onChange={importGpx}
+                  />
+                  <FieldDescription>Processed locally—your file isn’t uploaded.</FieldDescription>
+                </Field>
+                <NumberField id="temperature" label="Temperature" unit={units === "metric" ? "°C" : "°F"} description="Warmer air is less dense and creates slightly less aerodynamic drag." value={temperature} step={1} min={units === "metric" ? -18 : 0} max={units === "metric" ? 45 : 113} onChange={(value) => update("ambientTempCelsius", units === "metric" ? value : (value - 32) / 1.8)} />
+                <NumberField id="humidity" label="Relative humidity" unit="%" description="Humid air is slightly less dense than dry air at the same temperature." value={values.relativeHumidity} step={1} min={0} max={100} onChange={(value) => update("relativeHumidity", value)} />
+                {importError ? (
+                  <Alert variant="destructive" aria-live="polite" className="sm:col-span-2 xl:col-span-4">
+                    <TriangleAlert />
+                    <AlertTitle>Import failed</AlertTitle>
+                    <AlertDescription>{importError}</AlertDescription>
+                  </Alert>
                 ) : null}
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="gpx-file">Import GPX</FieldLabel>
-                <Input
-                  id="gpx-file"
-                  type="file"
-                  accept=".gpx,application/gpx+xml,application/xml,text/xml"
-                  onChange={importGpx}
-                />
-                <FieldDescription>Processed locally—your file isn’t uploaded.</FieldDescription>
-              </Field>
-              {importError ? (
-                <Alert variant="destructive" aria-live="polite">
-                  <TriangleAlert />
-                  <AlertTitle>Import failed</AlertTitle>
-                  <AlertDescription>{importError}</AlertDescription>
-                </Alert>
-              ) : null}
-              {importedCourse ? (
-                <Alert>
-                  <Upload />
-                  <AlertTitle>{importedCourse.filename}</AlertTitle>
-                  <AlertDescription>
-                    {(importedCourse.data.meta.totalDistanceMeters / 1000).toFixed(1)} km · {Math.round(importedCourse.data.meta.totalGainMeters).toLocaleString()} m gain · {importedCourse.data.data.length.toLocaleString()} points
-                    <span className="mt-3 flex flex-wrap gap-2">
-                      <Button type="button" size="xs" variant="outline" onClick={downloadImportedCourse}>
-                        <Download /> Download course JSON
-                      </Button>
-                      <Button type="button" size="xs" variant="ghost" onClick={removeImportedCourse}>
-                        <Trash2 /> Remove
-                      </Button>
-                    </span>
-                  </AlertDescription>
-                </Alert>
-              ) : null}
-            </FieldGroup>
+                {importedCourse ? (
+                  <Alert className="sm:col-span-2 xl:col-span-4">
+                    <Upload />
+                    <AlertTitle>{importedCourse.filename}</AlertTitle>
+                    <AlertDescription>
+                      {(importedCourse.data.meta.totalDistanceMeters / 1000).toFixed(1)} km · {Math.round(importedCourse.data.meta.totalGainMeters).toLocaleString()} m gain · {importedCourse.data.data.length.toLocaleString()} points
+                      <span className="mt-3 flex flex-wrap gap-2">
+                        <Button type="button" size="xs" variant="outline" onClick={downloadImportedCourse}>
+                          <Download /> Download course JSON
+                        </Button>
+                        <Button type="button" size="xs" variant="ghost" onClick={removeImportedCourse}>
+                          <Trash2 /> Remove
+                        </Button>
+                      </span>
+                    </AlertDescription>
+                  </Alert>
+                ) : null}
+              </div>
+            </section>
 
-            <FieldGroup>
+            <section className="grid gap-6 py-7 lg:grid-cols-[13rem_minmax(0,1fr)]">
               <div>
-                <p className="mb-1 font-medium">Rider & bike</p>
+                <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Rider & bike</h3>
                 <p className="text-sm text-muted-foreground">Your planned output and system mass.</p>
               </div>
-              <NumberField id="power" label="Race power" unit="W" value={values.avgPowerWatts} step={5} min={50} max={1000} onChange={(value) => update("avgPowerWatts", value)} />
-              <NumberField id="rider-mass" label="Rider mass" unit={units === "metric" ? "kg" : "lb"} value={riderMass} step={0.5} min={units === "metric" ? 10 : 22} max={units === "metric" ? 200 : 440} onChange={(value) => update("massRiderKg", units === "metric" ? value : value / 2.20462)} />
-              <NumberField id="bike-mass" label="Bike mass" unit={units === "metric" ? "kg" : "lb"} value={bikeMass} step={0.5} min={units === "metric" ? 1 : 2.2} max={units === "metric" ? 30 : 66} onChange={(value) => update("massBikeKg", units === "metric" ? value : value / 2.20462)} />
-            </FieldGroup>
+              <div className="grid gap-5 sm:grid-cols-3">
+                <NumberField id="power" label="Race power" unit="W" value={values.avgPowerWatts} step={5} min={50} max={1000} onChange={(value) => update("avgPowerWatts", value)} />
+                <NumberField id="rider-mass" label="Rider mass" unit={units === "metric" ? "kg" : "lb"} value={riderMass} step={0.5} min={units === "metric" ? 10 : 22} max={units === "metric" ? 200 : 440} onChange={(value) => update("massRiderKg", units === "metric" ? value : value / 2.20462)} />
+                <NumberField id="bike-mass" label="Bike mass" unit={units === "metric" ? "kg" : "lb"} value={bikeMass} step={0.5} min={units === "metric" ? 1 : 2.2} max={units === "metric" ? 30 : 66} onChange={(value) => update("massBikeKg", units === "metric" ? value : value / 2.20462)} />
+              </div>
+            </section>
 
-            <FieldGroup>
+            <section className="grid gap-6 py-7 lg:grid-cols-[13rem_minmax(0,1fr)]">
               <div>
-                <p className="mb-1 font-medium">Equipment</p>
+                <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Equipment</h3>
                 <p className="text-sm text-muted-foreground">Tune the losses from tires, position, and drivetrain.</p>
               </div>
-              <NumberField id="cda" label="Aerodynamic drag" unit="CdA m²" description="Lower values represent a more aerodynamic rider and bike." value={values.avgCdA} step={0.005} min={0.1} max={0.5} onChange={(value) => update("avgCdA", value)} />
-              <PresetButtons items={PRESETS.cda} value={values.avgCdA} onChange={(value) => update("avgCdA", value)} />
-              <Separator />
-              <NumberField id="crr" label="Rolling resistance" unit="Crr" description="This combines tire, pressure, and road-surface losses." value={values.avgCrr} step={0.00005} min={0.001} max={0.01} onChange={(value) => update("avgCrr", value)} />
-              <PresetButtons items={PRESETS.crr} value={values.avgCrr} onChange={(value) => update("avgCrr", value)} />
-              <NumberField id="drivetrain" label="Drivetrain loss" unit="%" value={values.lossDrivetrain} step={0.1} min={0.1} max={15} onChange={(value) => update("lossDrivetrain", value)} />
-              <PresetButtons items={PRESETS.drivetrain} value={values.lossDrivetrain} onChange={(value) => update("lossDrivetrain", value)} />
-            </FieldGroup>
-
-            <FieldGroup>
-              <div>
-                <p className="mb-1 font-medium">Conditions</p>
-                <p className="text-sm text-muted-foreground">Weather changes air density and drag.</p>
+              <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+                <FieldGroup className="gap-3">
+                  <NumberField id="cda" label="Aerodynamic drag" unit="CdA m²" description="Lower values represent a more aerodynamic rider and bike." value={values.avgCdA} step={0.005} min={0.1} max={0.5} onChange={(value) => update("avgCdA", value)} />
+                  <PresetButtons items={PRESETS.cda} value={values.avgCdA} onChange={(value) => update("avgCdA", value)} />
+                </FieldGroup>
+                <FieldGroup className="gap-3">
+                  <NumberField id="race-position" label="Time in race position" unit="%" description="Share of the ride spent in the aerodynamic position represented by your CdA. Time spent sitting up is modeled with 25% higher CdA." value={values.racePositionPercent} step={1} min={0} max={100} onChange={(value) => update("racePositionPercent", value)} />
+                  <PresetButtons items={PRESETS.racePosition} value={values.racePositionPercent} onChange={(value) => update("racePositionPercent", value)} />
+                </FieldGroup>
+                <FieldGroup className="gap-3">
+                  <NumberField id="crr" label="Rolling resistance" unit="Crr" description="This combines tire, pressure, and road-surface losses." value={values.avgCrr} step={0.00005} min={0.001} max={0.01} onChange={(value) => update("avgCrr", value)} />
+                  <PresetButtons items={PRESETS.crr} value={values.avgCrr} onChange={(value) => update("avgCrr", value)} />
+                </FieldGroup>
+                <FieldGroup className="gap-3">
+                  <NumberField id="drivetrain" label="Drivetrain loss" unit="%" value={values.lossDrivetrain} step={0.1} min={0.1} max={15} onChange={(value) => update("lossDrivetrain", value)} />
+                  <PresetButtons items={PRESETS.drivetrain} value={values.lossDrivetrain} onChange={(value) => update("lossDrivetrain", value)} />
+                </FieldGroup>
               </div>
-              <NumberField id="temperature" label="Temperature" unit={units === "metric" ? "°C" : "°F"} description="Warmer air is less dense and creates slightly less aerodynamic drag." value={temperature} step={1} min={units === "metric" ? -18 : 0} max={units === "metric" ? 45 : 113} onChange={(value) => update("ambientTempCelsius", units === "metric" ? value : (value - 32) / 1.8)} />
-              <NumberField id="humidity" label="Relative humidity" unit="%" description="Humid air is slightly less dense than dry air at the same temperature." value={values.relativeHumidity} step={1} min={0} max={100} onChange={(value) => update("relativeHumidity", value)} />
-            </FieldGroup>
+            </section>
           </CardContent>
         </Card>
 
