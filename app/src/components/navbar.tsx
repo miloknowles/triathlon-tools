@@ -14,8 +14,11 @@ export function Navbar() {
           Triathlon Tools
         </Link>
         <nav className="ml-auto flex items-center gap-1">
-          <Link href="#simulator" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+          <Link href="/#simulator" className={buttonVariants({ variant: "ghost", size: "sm" })}>
             Bike Split Predictor
+          </Link>
+          <Link href="/cda" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+            CdA Estimator
           </Link>
           <a
             href="https://github.com/miloknowles/triathlon-tools"
