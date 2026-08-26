@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import {
   Activity,
   Bike,
@@ -14,7 +14,7 @@ import {
   Upload,
   Wind,
 } from "lucide-react"
-import { CartesianGrid, Line, LineChart, ReferenceArea, XAxis, YAxis } from "recharts"
+import { CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, XAxis, YAxis } from "recharts"
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -31,6 +31,8 @@ type SettingsForm = Omit<AnalysisSettings, "startSeconds" | "endSeconds"> & {
   startMinutes: number
   endMinutes: number
 }
+
+type ChartEventState = { activeTooltipIndex?: number | string | null }
 
 const DEFAULT_SETTINGS: SettingsForm = {
   riderMassKg: 75,
@@ -55,19 +57,17 @@ function compassDirection(degrees: number) {
   return directions[Math.round(degrees / 45) % 8]
 }
 
-function numericValue(value: string, fallback: number) {
-  const parsed = Number(value)
-  return Number.isFinite(parsed) ? parsed : fallback
-}
-
 export function CdaAnalyzer() {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const dragStartSecondsRef = useRef<number | null>(null)
+  const dragCurrentSecondsRef = useRef<number | null>(null)
   const [ride, setRide] = useState<ImportedRide | null>(null)
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [result, setResult] = useState<CdaAnalysis | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hoveredElapsedSeconds, setHoveredElapsedSeconds] = useState<number | null>(null)
+  const [dragSelection, setDragSelection] = useState<{ startSeconds: number; endSeconds: number } | null>(null)
 
   const chartData = useMemo(() => {
     if (!ride) return []
@@ -86,11 +86,58 @@ export function CdaAnalyzer() {
     () => hoveredElapsedSeconds === null ? null : nearestGpsSample(rideGpsSamples, hoveredElapsedSeconds),
     [hoveredElapsedSeconds, rideGpsSamples]
   )
+  const displayedSelection = dragSelection
+    ? {
+        startMinutes: Math.min(dragSelection.startSeconds, dragSelection.endSeconds) / 60,
+        endMinutes: Math.max(dragSelection.startSeconds, dragSelection.endSeconds) / 60,
+      }
+    : { startMinutes: settings.startMinutes, endMinutes: settings.endMinutes }
 
-  function updateHoveredPosition(state: { activeTooltipIndex?: number | string | null }) {
+  function chartDatum(state: ChartEventState) {
+    if (state.activeTooltipIndex === null || state.activeTooltipIndex === undefined) return undefined
     const index = Number(state.activeTooltipIndex)
-    const datum = Number.isInteger(index) ? chartData[index] : undefined
+    return Number.isInteger(index) ? chartData[index] : undefined
+  }
+
+  function updateHoveredPosition(state: ChartEventState) {
+    const datum = chartDatum(state)
     setHoveredElapsedSeconds(datum?.elapsedSeconds ?? null)
+    if (dragStartSecondsRef.current !== null && datum) {
+      dragCurrentSecondsRef.current = datum.elapsedSeconds
+      setDragSelection({ startSeconds: dragStartSecondsRef.current, endSeconds: datum.elapsedSeconds })
+    }
+  }
+
+  function startChartSelection(state: ChartEventState) {
+    const datum = chartDatum(state)
+    if (!datum) return
+    dragStartSecondsRef.current = datum.elapsedSeconds
+    dragCurrentSecondsRef.current = datum.elapsedSeconds
+    setDragSelection({ startSeconds: datum.elapsedSeconds, endSeconds: datum.elapsedSeconds })
+    setHoveredElapsedSeconds(datum.elapsedSeconds)
+  }
+
+  function finishChartSelection(state?: ChartEventState) {
+    const startSeconds = dragStartSecondsRef.current
+    if (startSeconds === null) return
+    const endSeconds = (state && chartDatum(state)?.elapsedSeconds) ?? dragCurrentSecondsRef.current ?? startSeconds
+    dragStartSecondsRef.current = null
+    dragCurrentSecondsRef.current = null
+    setDragSelection(null)
+    if (endSeconds === startSeconds) return
+    setSettings((current) => ({
+      ...current,
+      startMinutes: Math.min(startSeconds, endSeconds) / 60,
+      endMinutes: Math.max(startSeconds, endSeconds) / 60,
+    }))
+    setResult(null)
+  }
+
+  function cancelChartSelection() {
+    dragStartSecondsRef.current = null
+    dragCurrentSecondsRef.current = null
+    setDragSelection(null)
+    setHoveredElapsedSeconds(null)
   }
 
   async function importFile(file: File | undefined) {
@@ -102,6 +149,7 @@ export function CdaAnalyzer() {
       const endMinutes = imported.durationSeconds / 60
       setRide(imported)
       setHoveredElapsedSeconds(null)
+      setDragSelection(null)
       setSettings((current) => ({ ...current, startMinutes: 0, endMinutes }))
       setResult(null)
     } catch (caught) {
@@ -138,12 +186,13 @@ export function CdaAnalyzer() {
     setResult(null)
     setError(null)
     setHoveredElapsedSeconds(null)
+    cancelChartSelection()
   }
 
   return (
     <main id="cda-analyzer" className="mx-auto flex w-full max-w-[88rem] flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8">
       <section className="max-w-3xl space-y-3">
-        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Estimate CdA from a FIT ride</h1>
+        <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Estimate CdA from a bike power file</h1>
         <p className="text-base leading-7 text-muted-foreground">
           Find straight, mostly flat windows in your power file and estimate an effective race-position CdA. Opposite-direction
           windows are used to estimate the wind that best reconciles the data.
@@ -161,7 +210,10 @@ export function CdaAnalyzer() {
 
       <Card>
         <CardHeader>
-          <CardTitle>1. Import your ride</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs leading-none font-semibold text-primary-foreground tabular-nums">1</span>
+            Import your ride
+          </CardTitle>
           <CardDescription>
             The FIT file stays in your browser. When a route is shown, OpenFreeMap receives normal tile requests for that geographic area.
           </CardDescription>
@@ -214,22 +266,31 @@ export function CdaAnalyzer() {
       {ride && (
         <>
           <Card>
-            <CardHeader><CardTitle>Ride overview</CardTitle><CardDescription>Use the timeline to identify a clean race section, then enter its start and end below.</CardDescription></CardHeader>
+            <CardHeader><CardTitle>Ride overview</CardTitle><CardDescription>Drag across the timeline to select a clean race section, or enter its start and end below.</CardDescription></CardHeader>
             <CardContent>
               <div className={rideGpsSamples.length > 0 ? "grid gap-4 lg:grid-cols-2" : undefined}>
                 <div className="min-w-0">
                   <ChartContainer
                     config={chartConfig}
-                    className="h-72 w-full"
-                    onTouchCancel={() => setHoveredElapsedSeconds(null)}
+                    className="h-72 w-full cursor-crosshair touch-none select-none"
+                    onTouchCancel={cancelChartSelection}
                   >
                     <LineChart
                       data={chartData}
                       margin={{ left: 8, right: 8, top: 8 }}
                       onMouseMove={updateHoveredPosition}
                       onTouchMove={updateHoveredPosition}
-                      onMouseLeave={() => setHoveredElapsedSeconds(null)}
-                      onTouchEnd={() => setHoveredElapsedSeconds(null)}
+                      onMouseDown={startChartSelection}
+                      onTouchStart={startChartSelection}
+                      onMouseUp={finishChartSelection}
+                      onTouchEnd={(state) => {
+                        finishChartSelection(state)
+                        setHoveredElapsedSeconds(null)
+                      }}
+                      onMouseLeave={() => {
+                        finishChartSelection()
+                        setHoveredElapsedSeconds(null)
+                      }}
                     >
                       <CartesianGrid vertical={false} />
                       <XAxis dataKey="minute" type="number" domain={["dataMin", "dataMax"]} tickFormatter={(value) => `${Math.round(value)}m`} />
@@ -245,7 +306,17 @@ export function CdaAnalyzer() {
                           />
                         }
                       />
-                      <ReferenceArea x1={settings.startMinutes} x2={settings.endMinutes} fill="var(--color-power)" fillOpacity={0.07} />
+                      <ReferenceArea
+                        x1={displayedSelection.startMinutes}
+                        x2={displayedSelection.endMinutes}
+                        fill="var(--color-power)"
+                        fillOpacity={dragSelection ? 0.28 : 0.16}
+                        stroke="var(--color-power)"
+                        strokeOpacity={0.8}
+                        strokeWidth={1.5}
+                      />
+                      <ReferenceLine x={displayedSelection.startMinutes} stroke="var(--color-power)" strokeWidth={2} />
+                      <ReferenceLine x={displayedSelection.endMinutes} stroke="var(--color-power)" strokeWidth={2} />
                       <Line yAxisId="power" dataKey="power" type="monotone" stroke="var(--color-power)" dot={false} strokeWidth={1.2} connectNulls />
                       <Line yAxisId="speed" dataKey="speed" type="monotone" stroke="var(--color-speed)" dot={false} strokeWidth={1.2} connectNulls />
                     </LineChart>
@@ -253,6 +324,10 @@ export function CdaAnalyzer() {
                   <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-indigo-600" /> Power (W)</span>
                     <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-emerald-600" /> Speed (km/h)</span>
+                    <span>Click and drag to set the analysis range.</span>
+                    <span className="font-medium text-foreground tabular-nums">
+                      Selected: {formatElapsed(displayedSelection.startMinutes * 60)}–{formatElapsed(displayedSelection.endMinutes * 60)}
+                    </span>
                     {rideGpsSamples.length === 0 && <span>GPS headings are missing; wind fitting will be limited.</span>}
                     {!ride.hasAltitude && <span>Altitude is missing; flat-road gravity is assumed.</span>}
                   </div>
@@ -264,10 +339,16 @@ export function CdaAnalyzer() {
 
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,0.55fr)]">
             <Card>
-              <CardHeader><CardTitle>2. Set the analysis assumptions</CardTitle><CardDescription>Start with a known flat out-and-back portion and your total race setup.</CardDescription></CardHeader>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary text-xs leading-none font-semibold text-primary-foreground tabular-nums">2</span>
+                  Set the analysis assumptions
+                </CardTitle>
+                <CardDescription>Start with a known flat out-and-back portion and your total race setup.</CardDescription>
+              </CardHeader>
               <CardContent className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                <NumberField id="start-minutes" label="Start time" suffix="min" value={settings.startMinutes} min={0} max={ride.durationSeconds / 60} step={1} onChange={(value) => updateSetting("startMinutes", value)} />
-                <NumberField id="end-minutes" label="End time" suffix="min" value={settings.endMinutes} min={0} max={ride.durationSeconds / 60} step={1} onChange={(value) => updateSetting("endMinutes", value)} />
+                <TimeField id="start-time" label="Start time" valueSeconds={settings.startMinutes * 60} maxSeconds={ride.durationSeconds} onChange={(value) => updateSetting("startMinutes", value / 60)} />
+                <TimeField id="end-time" label="End time" valueSeconds={settings.endMinutes * 60} maxSeconds={ride.durationSeconds} onChange={(value) => updateSetting("endMinutes", value / 60)} />
                 <NumberField id="window-seconds" label="Window length" suffix="sec" value={settings.windowSeconds} min={30} max={300} step={15} onChange={(value) => updateSetting("windowSeconds", value)} description="60–120 sec usually works well." />
                 <NumberField id="rider-mass" label="Rider mass" suffix="kg" value={settings.riderMassKg} min={35} max={180} step={0.5} onChange={(value) => updateSetting("riderMassKg", value)} />
                 <NumberField id="bike-mass" label="Bike + equipment" suffix="kg" value={settings.bikeMassKg} min={5} max={40} step={0.5} onChange={(value) => updateSetting("bikeMassKg", value)} />
@@ -347,14 +428,99 @@ export function CdaAnalyzer() {
 }
 
 function NumberField({ id, label, suffix, value, min, max, step, description, onChange }: { id: string; label: string; suffix?: string; value: number; min: number; max: number; step: number; description?: string; onChange: (value: number) => void }) {
+  const editingRef = useRef(false)
+  const [draft, setDraft] = useState(() => Number.isFinite(value) ? String(value) : "")
+
+  useEffect(() => {
+    if (!editingRef.current) setDraft(Number.isFinite(value) ? String(value) : "")
+  }, [value])
+
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <div className="relative">
-        <Input id={id} type="number" value={Number.isFinite(value) ? value : ""} min={min} max={max} step={step} className={suffix ? "pr-14" : undefined} onChange={(event) => onChange(numericValue(event.target.value, value))} />
+        <Input
+          id={id}
+          type="number"
+          value={draft}
+          min={min}
+          max={max}
+          step={step}
+          className={suffix ? "pr-14" : undefined}
+          onFocus={() => { editingRef.current = true }}
+          onChange={(event) => {
+            const nextDraft = event.target.value
+            setDraft(nextDraft)
+            if (nextDraft.trim() === "") return
+            const parsed = Number(nextDraft)
+            if (Number.isFinite(parsed)) onChange(parsed)
+          }}
+          onBlur={() => {
+            editingRef.current = false
+            if (draft.trim() === "" || !Number.isFinite(Number(draft))) {
+              setDraft(Number.isFinite(value) ? String(value) : "")
+              return
+            }
+            setDraft(String(Number(draft)))
+          }}
+        />
         {suffix && <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">{suffix}</span>}
       </div>
       {description && <FieldDescription>{description}</FieldDescription>}
+    </Field>
+  )
+}
+
+function formatMinuteSecond(totalSeconds: number) {
+  const roundedSeconds = Math.max(0, Math.round(totalSeconds))
+  const minutes = Math.floor(roundedSeconds / 60)
+  const seconds = roundedSeconds % 60
+  return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+}
+
+function parseMinuteSecond(value: string) {
+  const match = value.trim().match(/^(\d+):([0-5]\d)$/)
+  if (!match) return null
+  return Number(match[1]) * 60 + Number(match[2])
+}
+
+function TimeField({ id, label, valueSeconds, maxSeconds, onChange }: { id: string; label: string; valueSeconds: number; maxSeconds: number; onChange: (value: number) => void }) {
+  const editingRef = useRef(false)
+  const [draft, setDraft] = useState(() => formatMinuteSecond(valueSeconds))
+
+  useEffect(() => {
+    if (!editingRef.current) setDraft(formatMinuteSecond(valueSeconds))
+  }, [valueSeconds])
+
+  return (
+    <Field>
+      <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <div className="relative">
+        <Input
+          id={id}
+          type="text"
+          value={draft}
+          placeholder="MM:SS"
+          className="pr-16 font-mono tabular-nums"
+          onFocus={() => { editingRef.current = true }}
+          onChange={(event) => {
+            const nextDraft = event.target.value
+            setDraft(nextDraft)
+            const parsed = parseMinuteSecond(nextDraft)
+            if (parsed !== null && parsed <= maxSeconds) onChange(parsed)
+          }}
+          onBlur={() => {
+            editingRef.current = false
+            const parsed = parseMinuteSecond(draft)
+            if (parsed === null || parsed > maxSeconds) {
+              setDraft(formatMinuteSecond(valueSeconds))
+              return
+            }
+            setDraft(formatMinuteSecond(parsed))
+          }}
+        />
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">MM:SS</span>
+      </div>
     </Field>
   )
 }
