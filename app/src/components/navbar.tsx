@@ -1,7 +1,14 @@
 import Link from "next/link"
-import { Bike } from "lucide-react"
+import { Bike, ChevronDown } from "lucide-react"
 
+import { ModeToggle } from "@/components/mode-toggle"
 import { buttonVariants } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Navbar() {
   return (
@@ -13,10 +20,30 @@ export function Navbar() {
           </span>
           Triathlon Tools
         </Link>
-        <nav className="ml-auto flex items-center gap-1">
-          <Link href="#simulator" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-            Bike Split Predictor
-          </Link>
+        <nav className="ml-auto flex items-center gap-1" aria-label="Main navigation">
+          <div className="hidden items-center gap-1 md:flex">
+            <Link href="/" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              Race Calculator
+            </Link>
+            <Link href="/bike-split#simulator" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              Bike Split Predictor
+            </Link>
+            <Link href="/cda" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              CdA Estimator
+            </Link>
+          </div>
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                Tools <ChevronDown className="size-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem render={<Link href="/" />}>Race Calculator</DropdownMenuItem>
+                <DropdownMenuItem render={<Link href="/bike-split#simulator" />}>Bike Split Predictor</DropdownMenuItem>
+                <DropdownMenuItem render={<Link href="/cda" />}>CdA Estimator</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           <a
             href="https://github.com/miloknowles/triathlon-tools"
             target="_blank"
@@ -28,6 +55,7 @@ export function Navbar() {
               <path d="M12 .7a11.5 11.5 0 0 0-3.6 22.4c.6.1.8-.2.8-.6v-2.2c-3.4.7-4.1-1.4-4.1-1.4-.5-1.4-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1.1 1.8 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.7 0-1.3.4-2.3 1.2-3.1-.1-.3-.5-1.6.1-3.1 0 0 1-.3 3.2 1.2a11 11 0 0 1 5.8 0c2.2-1.5 3.2-1.2 3.2-1.2.6 1.5.2 2.8.1 3.1.8.8 1.2 1.8 1.2 3.1 0 4.4-2.8 5.4-5.5 5.7.4.4.8 1.1.8 2.2v3.3c0 .4.2.7.8.6A11.5 11.5 0 0 0 12 .7Z" />
             </svg>
           </a>
+          <ModeToggle />
         </nav>
       </div>
     </header>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import {
   Activity,
   Clock3,
@@ -71,6 +71,41 @@ const DEFAULTS: FormValues = {
   massBikeKg: 10,
   ambientTempCelsius: 20,
   relativeHumidity: 50,
+}
+
+export const BIKE_SIMULATOR_STORAGE_KEY = "triathlon-tools:bike-simulator-inputs:v1"
+
+function storedNumber(value: unknown, fallback: number, min: number, max: number) {
+  return typeof value === "number" && Number.isFinite(value) && value >= min && value <= max ? value : fallback
+}
+
+function parseStoredInputs(raw: string | null): { units: Units; values: FormValues } | null {
+  if (!raw) return null
+  try {
+    const stored = JSON.parse(raw) as { version?: unknown; units?: unknown; values?: Record<string, unknown> }
+    if (stored.version !== 1 || !stored.values) return null
+    const values = stored.values
+    const courseName = values.courseName === "" || (typeof values.courseName === "string" && COURSES.some((course) => course.value === values.courseName))
+      ? values.courseName
+      : DEFAULTS.courseName
+    return {
+      units: stored.units === "imperial" ? "imperial" : "metric",
+      values: {
+        courseName,
+        avgPowerWatts: storedNumber(values.avgPowerWatts, DEFAULTS.avgPowerWatts, 50, 1000),
+        avgCdA: storedNumber(values.avgCdA, DEFAULTS.avgCdA, 0.1, 0.5),
+        racePositionPercent: storedNumber(values.racePositionPercent, DEFAULTS.racePositionPercent, 0, 100),
+        avgCrr: storedNumber(values.avgCrr, DEFAULTS.avgCrr, 0.001, 0.01),
+        lossDrivetrain: storedNumber(values.lossDrivetrain, DEFAULTS.lossDrivetrain, 0.1, 15),
+        massRiderKg: storedNumber(values.massRiderKg, DEFAULTS.massRiderKg, 10, 200),
+        massBikeKg: storedNumber(values.massBikeKg, DEFAULTS.massBikeKg, 1, 30),
+        ambientTempCelsius: storedNumber(values.ambientTempCelsius, DEFAULTS.ambientTempCelsius, -18, 45),
+        relativeHumidity: storedNumber(values.relativeHumidity, DEFAULTS.relativeHumidity, 0, 100),
+      },
+    }
+  } catch {
+    return null
+  }
 }
 
 const COURSE_SELECT_ITEMS = COURSES.map((course) => ({
@@ -200,11 +235,47 @@ function PresetButtons({
 export function BikeSimulator() {
   const [units, setUnits] = useState<Units>("metric")
   const [values, setValues] = useState(DEFAULTS)
+  const [storageLoaded, setStorageLoaded] = useState(false)
   const [results, setResults] = useState<SimulationResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [importError, setImportError] = useState<string | null>(null)
   const [importedCourse, setImportedCourse] = useState<ImportedCourse | null>(null)
+
+  useEffect(() => {
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      try {
+        const stored = parseStoredInputs(window.localStorage.getItem(BIKE_SIMULATOR_STORAGE_KEY))
+        if (stored) {
+          setUnits(stored.units)
+          setValues(stored.values)
+        }
+      } catch {
+        // Storage can be unavailable in private browsing or when access is blocked.
+      } finally {
+        setStorageLoaded(true)
+      }
+    })
+    return () => { active = false }
+  }, [])
+
+  useEffect(() => {
+    if (!storageLoaded) return
+    const courseName = values.courseName === "" || COURSES.some((course) => course.value === values.courseName)
+      ? values.courseName
+      : DEFAULTS.courseName
+    try {
+      window.localStorage.setItem(BIKE_SIMULATOR_STORAGE_KEY, JSON.stringify({
+        version: 1,
+        units,
+        values: { ...values, courseName },
+      }))
+    } catch {
+      // Storage can be unavailable in private browsing or when its quota is full.
+    }
+  }, [storageLoaded, units, values])
 
   const presetCourse = COURSES.find((course) => course.value === values.courseName)
   const selectedCourse = values.courseName === CUSTOM_COURSE_VALUE && importedCourse
@@ -222,6 +293,12 @@ export function BikeSimulator() {
 
   function selectCourse(value: string) {
     update("courseName", value)
+    setResults(null)
+    setError(null)
+  }
+
+  function clearCourse() {
+    update("courseName", "")
     setResults(null)
     setError(null)
   }
@@ -361,10 +438,11 @@ export function BikeSimulator() {
                     value={courseSelectItems.find((course) => course.value === values.courseName) ?? null}
                     onValueChange={(course) => {
                       if (course) selectCourse(course.value)
+                      else clearCourse()
                     }}
                     autoHighlight
                   >
-                    <ComboboxInput id="course" className="w-full" placeholder="Search courses..." />
+                    <ComboboxInput id="course" className="w-full" placeholder="Search courses..." showClear={Boolean(selectedCourse)} />
                     <ComboboxContent>
                       <ComboboxEmpty>No courses found.</ComboboxEmpty>
                       <ComboboxList>
