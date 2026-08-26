@@ -2,7 +2,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest"
 
-import { BikeSimulator } from "@/components/bike-simulator"
+import { BIKE_SIMULATOR_STORAGE_KEY, BikeSimulator } from "@/components/bike-simulator"
 
 function uploadedFile(name: string, contents: string) {
   const file = new File([contents], name, { type: "application/gpx+xml" })
@@ -21,11 +21,59 @@ beforeAll(() => {
 
 beforeEach(() => {
   vi.restoreAllMocks()
+  window.localStorage.clear()
 })
 
 describe("BikeSimulator custom courses", () => {
-  it("uses practical increments for common race inputs", () => {
+  it("restores saved inputs and ignores malformed stored values", async () => {
+    window.localStorage.setItem(BIKE_SIMULATOR_STORAGE_KEY, JSON.stringify({
+      version: 1,
+      units: "metric",
+      values: {
+        courseName: "chattanooga_703",
+        avgPowerWatts: 310,
+        avgCdA: 0.24,
+        racePositionPercent: 98,
+        avgCrr: 0.0033,
+        lossDrivetrain: 3.7,
+        massRiderKg: 70,
+        massBikeKg: 9,
+        ambientTempCelsius: 25,
+        relativeHumidity: 60,
+      },
+    }))
+
     render(<BikeSimulator />)
+
+    await waitFor(() => expect((screen.getByLabelText("Race power") as HTMLInputElement).value).toBe("310"))
+    expect((screen.getByLabelText("Aerodynamic drag") as HTMLInputElement).value).toBe("0.24")
+    expect((screen.getByLabelText("Race course") as HTMLInputElement).value).toBe("🇺🇸 70.3 Chattanooga")
+  })
+
+  it("saves input changes for the next browser visit", async () => {
+    const user = userEvent.setup()
+    render(<BikeSimulator />)
+    const power = screen.getByLabelText("Race power")
+
+    await user.clear(power)
+    await user.type(power, "275")
+
+    await waitFor(() => {
+      const stored = JSON.parse(window.localStorage.getItem(BIKE_SIMULATOR_STORAGE_KEY) ?? "{}")
+      expect(stored.values.avgPowerWatts).toBe(275)
+    })
+  })
+
+  it("falls back to defaults when saved input data is malformed", async () => {
+    window.localStorage.setItem(BIKE_SIMULATOR_STORAGE_KEY, "not-json")
+    render(<BikeSimulator />)
+
+    await waitFor(() => expect((screen.getByLabelText("Race power") as HTMLInputElement).value).toBe("250"))
+  })
+
+  it("uses practical increments for common race inputs", async () => {
+    render(<BikeSimulator />)
+    await waitFor(() => expect(window.localStorage.getItem(BIKE_SIMULATOR_STORAGE_KEY)).not.toBeNull())
 
     expect(screen.getByLabelText("Relative humidity").getAttribute("step")).toBe("5")
     expect(screen.getByLabelText("Race power").getAttribute("step")).toBe("5")

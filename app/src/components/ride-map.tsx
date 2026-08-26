@@ -48,7 +48,7 @@ export function RideMap({ samples, hoverSample }: RideMapProps) {
   if (positions.length === 0) return null
 
   return (
-    <div className="h-72 w-full overflow-hidden rounded-lg border" aria-label="Ride route map">
+    <div className="h-72 min-w-0 max-w-full w-full overflow-hidden rounded-lg border" aria-label="Ride route map">
       <Map
         ref={mapRef}
         initialViewState={{

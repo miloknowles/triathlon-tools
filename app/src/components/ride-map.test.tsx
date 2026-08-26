@@ -52,6 +52,7 @@ describe("RideMap", () => {
   it("shows a single coordinate at a default zoom instead of fitting bounds", async () => {
     render(<RideMap samples={[sample(0, 42, -71)]} hoverSample={null} />)
 
+    expect(screen.getByLabelText("Ride route map").className).toContain("min-w-0")
     expect(mapCalls.setWorkerUrl).toHaveBeenCalledWith("/maplibre/maplibre-gl-worker.mjs")
     await waitFor(() => expect(mapCalls.jumpTo).toHaveBeenCalledWith({ center: [-71, 42], zoom: 13 }))
     expect(mapCalls.fitBounds).not.toHaveBeenCalled()

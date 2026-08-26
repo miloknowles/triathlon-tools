@@ -38,12 +38,14 @@ export async function parseFitFile(file: File): Promise<ImportedRide> {
     throw new Error(typeof error === "string" ? error : "The FIT file could not be decoded.")
   }
 
-  const records = parsed.records ?? []
-  const firstTimestamp = records.find((record) => record.timestamp instanceof Date)?.timestamp
+  const records = (parsed.records ?? [])
+    .filter((record) => record.timestamp instanceof Date)
+    .sort((a, b) => (a.timestamp as Date).getTime() - (b.timestamp as Date).getTime())
+    .filter((record, index, sorted) => index === 0 || (record.timestamp as Date).getTime() !== (sorted[index - 1].timestamp as Date).getTime())
+  const firstTimestamp = records[0]?.timestamp
   if (!firstTimestamp) throw new Error("The FIT file does not contain timestamped ride records.")
   const firstTime = firstTimestamp.getTime()
   const samples: RideSample[] = records
-    .filter((record) => record.timestamp instanceof Date)
     .map((record) => ({
       timestamp: record.timestamp as Date,
       elapsedSeconds: ((record.timestamp as Date).getTime() - firstTime) / 1000,

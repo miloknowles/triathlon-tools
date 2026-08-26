@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { fireEvent, render, screen, waitFor } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { beforeEach, describe, expect, it, vi } from "vitest"
 
 import type { RideSample } from "@/lib/cda-analysis"
@@ -50,7 +50,7 @@ vi.mock("recharts", () => ({
   CartesianGrid: () => null,
   Legend: () => null,
   Line: () => null,
-  ReferenceArea: ({ x1, x2 }: { x1: number; x2: number }) => <output data-testid="selection-area" data-x1={x1} data-x2={x2} />,
+  ReferenceArea: ({ x1, x2, yAxisId }: { x1: number; x2: number; yAxisId: string }) => <output data-testid="selection-area" data-x1={x1} data-x2={x2} data-y-axis-id={yAxisId} />,
   ReferenceLine: () => null,
   Tooltip: () => null,
   XAxis: () => null,
@@ -88,6 +88,7 @@ async function upload(importedRide: ImportedRide) {
 }
 
 beforeEach(() => {
+  vi.useRealTimers()
   parseFitFile.mockReset()
 })
 
@@ -113,7 +114,8 @@ describe("CdaAnalyzer ride map", () => {
     await upload(ride(false))
 
     await waitFor(() => expect(screen.queryByTestId("ride-map")).toBeNull())
-    expect(screen.getByText("GPS headings are missing; wind fitting will be limited.")).toBeDefined()
+    expect(screen.getByText("GPS headings are required for CdA analysis.")).toBeDefined()
+    expect(screen.getByRole("button", { name: "Estimate CdA" }).hasAttribute("disabled")).toBe(true)
   })
 
   it("commits ordered start and end times when dragging in either direction", async () => {
@@ -126,6 +128,7 @@ describe("CdaAnalyzer ride map", () => {
     fireEvent.mouseDown(chart)
     fireEvent.mouseMove(chart)
     expect(screen.getByTestId("selection-area").getAttribute("data-x2")).toBe(String(20 / 60))
+    expect(screen.getByTestId("selection-area").getAttribute("data-y-axis-id")).toBe("power")
     fireEvent.mouseUp(chart)
     expect(startInput.value).toBe("00:00")
     expect(endInput.value).toBe("00:20")
@@ -142,6 +145,7 @@ describe("CdaAnalyzer ride map", () => {
     await upload(ride())
     const input = screen.getByLabelText("Window length") as HTMLInputElement
 
+    expect(input.min).toBe("15")
     fireEvent.focus(input)
     fireEvent.change(input, { target: { value: "" } })
     expect(input.value).toBe("")
@@ -149,6 +153,18 @@ describe("CdaAnalyzer ride map", () => {
     expect(input.value).toBe("90")
     fireEvent.blur(input)
     expect(input.value).toBe("90")
+  })
+
+  it("does not commit an out-of-range numeric setting", async () => {
+    render(<CdaAnalyzer />)
+    await upload(ride())
+    const input = screen.getByLabelText("Window length") as HTMLInputElement
+
+    fireEvent.focus(input)
+    fireEvent.change(input, { target: { value: "-60" } })
+    expect(input.value).toBe("-60")
+    fireEvent.blur(input)
+    expect(input.value).toBe("60")
   })
 
   it("edits start and end times as MM:SS values", async () => {
@@ -167,5 +183,22 @@ describe("CdaAnalyzer ride map", () => {
     fireEvent.change(endInput, { target: { value: "00:75" } })
     fireEvent.blur(endInput)
     expect(endInput.value).toBe("00:20")
+  })
+
+  it("shows a spinner and keeps analysis pending for at least one second", async () => {
+    render(<CdaAnalyzer />)
+    await upload(ride())
+    vi.useFakeTimers()
+    const button = screen.getByRole("button", { name: "Estimate CdA" }) as HTMLButtonElement
+
+    fireEvent.click(button)
+    expect((screen.getByRole("button", { name: "Estimating CdA…" }) as HTMLButtonElement).disabled).toBe(true)
+    await act(async () => { await vi.advanceTimersByTimeAsync(999) })
+    expect(screen.getByRole("button", { name: "Estimating CdA…" })).toBeDefined()
+    await act(async () => { await vi.advanceTimersByTimeAsync(1) })
+    expect(screen.getByRole("button", { name: "Estimate CdA" })).toBeDefined()
+    const assumptionsHeading = screen.getByText("Set the analysis assumptions")
+    const errorHeading = screen.getByText("Analysis unavailable")
+    expect(assumptionsHeading.compareDocumentPosition(errorHeading) & Node.DOCUMENT_POSITION_FOLLOWING).not.toBe(0)
   })
 })

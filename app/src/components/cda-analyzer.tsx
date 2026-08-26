@@ -6,7 +6,6 @@ import {
   Bike,
   FileCheck2,
   Gauge,
-  Info,
   LoaderCircle,
   Navigation,
   Trash2,
@@ -65,6 +64,7 @@ export function CdaAnalyzer() {
   const [settings, setSettings] = useState(DEFAULT_SETTINGS)
   const [result, setResult] = useState<CdaAnalysis | null>(null)
   const [loading, setLoading] = useState(false)
+  const [analyzing, setAnalyzing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hoveredElapsedSeconds, setHoveredElapsedSeconds] = useState<number | null>(null)
   const [dragSelection, setDragSelection] = useState<{ startSeconds: number; endSeconds: number } | null>(null)
@@ -88,9 +88,9 @@ export function CdaAnalyzer() {
   )
   const displayedSelection = dragSelection
     ? {
-        startMinutes: Math.min(dragSelection.startSeconds, dragSelection.endSeconds) / 60,
-        endMinutes: Math.max(dragSelection.startSeconds, dragSelection.endSeconds) / 60,
-      }
+      startMinutes: Math.min(dragSelection.startSeconds, dragSelection.endSeconds) / 60,
+      endMinutes: Math.max(dragSelection.startSeconds, dragSelection.endSeconds) / 60,
+    }
     : { startMinutes: settings.startMinutes, endMinutes: settings.endMinutes }
 
   function chartDatum(state: ChartEventState) {
@@ -160,8 +160,10 @@ export function CdaAnalyzer() {
     }
   }
 
-  function runAnalysis() {
-    if (!ride) return
+  async function runAnalysis() {
+    if (!ride || analyzing) return
+    const minimumDelay = new Promise((resolve) => setTimeout(resolve, 1000))
+    setAnalyzing(true)
     setError(null)
     try {
       const startSeconds = Math.max(0, settings.startMinutes * 60)
@@ -169,10 +171,15 @@ export function CdaAnalyzer() {
       if (endSeconds - startSeconds < settings.windowSeconds * 3) {
         throw new Error("Select a range at least three analysis windows long.")
       }
-      setResult(analyzeCda(ride.samples, { ...settings, startSeconds, endSeconds }))
+      const analysis = analyzeCda(ride.samples, { ...settings, startSeconds, endSeconds })
+      await minimumDelay
+      setResult(analysis)
     } catch (caught) {
+      await minimumDelay
       setResult(null)
       setError(caught instanceof Error ? caught.message : "The analysis could not be completed.")
+    } finally {
+      setAnalyzing(false)
     }
   }
 
@@ -190,7 +197,7 @@ export function CdaAnalyzer() {
   }
 
   return (
-    <main id="cda-analyzer" className="mx-auto flex w-full max-w-[88rem] flex-col gap-8 px-4 py-10 sm:px-6 lg:px-8">
+    <main id="cda-analyzer" className="mx-auto flex min-w-0 w-full max-w-[88rem] flex-col gap-8 px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
       <section className="max-w-3xl space-y-3">
         <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">Estimate CdA from a bike power file</h1>
         <p className="text-base leading-7 text-muted-foreground">
@@ -199,14 +206,14 @@ export function CdaAnalyzer() {
         </p>
       </section>
 
-      <Alert>
+      {/* <Alert>
         <Info />
         <AlertTitle>A field estimate, not a wind-tunnel result</AlertTitle>
         <AlertDescription>
           Crr is held at your chosen assumption. The result can still be shifted by drafting, traffic, changing wind, position changes,
           tire pressure, and barometric elevation error.
         </AlertDescription>
-      </Alert>
+      </Alert> */}
 
       <Card>
         <CardHeader>
@@ -259,20 +266,21 @@ export function CdaAnalyzer() {
         </CardContent>
       </Card>
 
-      {error && (
+      {error && !ride && (
         <Alert variant="destructive"><TriangleAlert /><AlertTitle>Analysis unavailable</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>
       )}
 
       {ride && (
         <>
-          <Card>
+          <Card className="min-w-0">
             <CardHeader><CardTitle>Ride overview</CardTitle><CardDescription>Drag across the timeline to select a clean race section, or enter its start and end below.</CardDescription></CardHeader>
-            <CardContent>
-              <div className={rideGpsSamples.length > 0 ? "grid gap-4 lg:grid-cols-2" : undefined}>
+            <CardContent className="min-w-0">
+              <div className={rideGpsSamples.length > 0 ? "grid min-w-0 gap-4 lg:grid-cols-2" : "min-w-0"}>
                 <div className="min-w-0">
                   <ChartContainer
                     config={chartConfig}
-                    className="h-72 w-full cursor-crosshair touch-none select-none"
+                    initialDimension={{ width: 240, height: 288 }}
+                    className="h-72 min-w-0 w-full cursor-crosshair touch-none select-none overflow-hidden"
                     onTouchCancel={cancelChartSelection}
                   >
                     <LineChart
@@ -307,16 +315,17 @@ export function CdaAnalyzer() {
                         }
                       />
                       <ReferenceArea
+                        yAxisId="power"
                         x1={displayedSelection.startMinutes}
                         x2={displayedSelection.endMinutes}
-                        fill="var(--color-power)"
-                        fillOpacity={dragSelection ? 0.28 : 0.16}
-                        stroke="var(--color-power)"
-                        strokeOpacity={0.8}
-                        strokeWidth={1.5}
+                        fill="#6366f1"
+                        fillOpacity={dragSelection ? 0.32 : 0.2}
+                        stroke="#4338ca"
+                        strokeOpacity={0.95}
+                        strokeWidth={2}
                       />
-                      <ReferenceLine x={displayedSelection.startMinutes} stroke="var(--color-power)" strokeWidth={2} />
-                      <ReferenceLine x={displayedSelection.endMinutes} stroke="var(--color-power)" strokeWidth={2} />
+                      <ReferenceLine yAxisId="power" x={displayedSelection.startMinutes} stroke="#4338ca" strokeWidth={2} />
+                      <ReferenceLine yAxisId="power" x={displayedSelection.endMinutes} stroke="#4338ca" strokeWidth={2} />
                       <Line yAxisId="power" dataKey="power" type="monotone" stroke="var(--color-power)" dot={false} strokeWidth={1.2} connectNulls />
                       <Line yAxisId="speed" dataKey="speed" type="monotone" stroke="var(--color-speed)" dot={false} strokeWidth={1.2} connectNulls />
                     </LineChart>
@@ -328,8 +337,8 @@ export function CdaAnalyzer() {
                     <span className="font-medium text-foreground tabular-nums">
                       Selected: {formatElapsed(displayedSelection.startMinutes * 60)}–{formatElapsed(displayedSelection.endMinutes * 60)}
                     </span>
-                    {rideGpsSamples.length === 0 && <span>GPS headings are missing; wind fitting will be limited.</span>}
-                    {!ride.hasAltitude && <span>Altitude is missing; flat-road gravity is assumed.</span>}
+                    {rideGpsSamples.length === 0 && <span>GPS headings are required for CdA analysis.</span>}
+                    {!ride.hasAltitude && <span>Altitude is required for CdA analysis.</span>}
                   </div>
                 </div>
                 {rideGpsSamples.length > 0 && <RideMap samples={ride.samples} hoverSample={hoverSample} />}
@@ -349,7 +358,7 @@ export function CdaAnalyzer() {
               <CardContent className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 <TimeField id="start-time" label="Start time" valueSeconds={settings.startMinutes * 60} maxSeconds={ride.durationSeconds} onChange={(value) => updateSetting("startMinutes", value / 60)} />
                 <TimeField id="end-time" label="End time" valueSeconds={settings.endMinutes * 60} maxSeconds={ride.durationSeconds} onChange={(value) => updateSetting("endMinutes", value / 60)} />
-                <NumberField id="window-seconds" label="Window length" suffix="sec" value={settings.windowSeconds} min={30} max={300} step={15} onChange={(value) => updateSetting("windowSeconds", value)} description="60–120 sec usually works well." />
+                <NumberField id="window-seconds" label="Window length" suffix="sec" value={settings.windowSeconds} min={15} max={300} step={15} onChange={(value) => updateSetting("windowSeconds", value)} description="60–120 sec usually works well." />
                 <NumberField id="rider-mass" label="Rider mass" suffix="kg" value={settings.riderMassKg} min={35} max={180} step={0.5} onChange={(value) => updateSetting("riderMassKg", value)} />
                 <NumberField id="bike-mass" label="Bike + equipment" suffix="kg" value={settings.bikeMassKg} min={5} max={40} step={0.5} onChange={(value) => updateSetting("bikeMassKg", value)} />
                 <NumberField id="crr" label="Assumed Crr" value={settings.crr} min={0.0015} max={0.008} step={0.00025} onChange={(value) => updateSetting("crr", value)} description="Typical good pavement: ~0.003–0.005." />
@@ -362,20 +371,27 @@ export function CdaAnalyzer() {
             <Card>
               <CardHeader><CardTitle>What the filter keeps</CardTitle></CardHeader>
               <CardContent className="text-sm leading-6 text-muted-foreground">
-                <p>Continuous windows with power above 20 W and speed above 10.8 km/h.</p>
-                <p>Straight travel with at least 90% heading coherence, removing turns and switchbacks.</p>
+                <p>At least 95% continuous power and speed coverage; zero-power coasting remains in the energy balance.</p>
+                <p>At least 90% GPS and altitude coverage, with straight reciprocal passes.</p>
                 <p>Windows below the selected average grade, with elevation and acceleration energy accounted for.</p>
-                <Button size="lg" className="mt-2 w-full" onClick={runAnalysis}><Gauge /> Estimate CdA</Button>
+                <Button size="lg" className="mt-2 w-full" disabled={analyzing || !ride.hasGps || !ride.hasAltitude} onClick={() => void runAnalysis()}>
+                  {analyzing ? <LoaderCircle className="animate-spin" /> : <Gauge />}
+                  {analyzing ? "Estimating CdA…" : "Estimate CdA"}
+                </Button>
               </CardContent>
             </Card>
           </div>
+
+          {error && (
+            <Alert variant="destructive"><TriangleAlert /><AlertTitle>Analysis unavailable</AlertTitle><AlertDescription>{error}</AlertDescription></Alert>
+          )}
         </>
       )}
 
       {result && (
         <section className="space-y-6" aria-live="polite">
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <MetricCard icon={<Bike />} label="Estimated CdA" value={result.cda.toFixed(3)} detail={`Middle 50%: ${result.cdaLow.toFixed(3)}–${result.cdaHigh.toFixed(3)} m²`} />
+            <MetricCard icon={<Bike />} label="Estimated CdA" value={result.cda.toFixed(3)} detail={`Included-window IQR: ${result.cdaLow.toFixed(3)}–${result.cdaHigh.toFixed(3)} m²`} />
             <MetricCard icon={<Wind />} label="Fitted wind" value={`${(result.estimatedWindSpeedMps * 3.6).toFixed(1)} km/h`} detail={`From ${compassDirection(result.estimatedWindFromDegrees)} (${Math.round(result.estimatedWindFromDegrees)}°)`} />
             <MetricCard icon={<Activity />} label="Clean windows" value={`${result.includedWindowCount} / ${result.totalWindowCount}`} detail="After robust outlier filtering" />
             <MetricCard icon={<Navigation />} label="Assumed Crr" value={settings.crr.toFixed(4)} detail="See sensitivity below" />
@@ -453,15 +469,16 @@ function NumberField({ id, label, suffix, value, min, max, step, description, on
             setDraft(nextDraft)
             if (nextDraft.trim() === "") return
             const parsed = Number(nextDraft)
-            if (Number.isFinite(parsed)) onChange(parsed)
+            if (Number.isFinite(parsed) && parsed >= min && parsed <= max) onChange(parsed)
           }}
           onBlur={() => {
             editingRef.current = false
-            if (draft.trim() === "" || !Number.isFinite(Number(draft))) {
+            const parsed = Number(draft)
+            if (draft.trim() === "" || !Number.isFinite(parsed) || parsed < min || parsed > max) {
               setDraft(Number.isFinite(value) ? String(value) : "")
               return
             }
-            setDraft(String(Number(draft)))
+            setDraft(String(parsed))
           }}
         />
         {suffix && <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-xs text-muted-foreground">{suffix}</span>}
