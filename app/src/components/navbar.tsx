@@ -1,8 +1,14 @@
 import Link from "next/link"
-import { Bike } from "lucide-react"
+import { Bike, ChevronDown } from "lucide-react"
 
 import { ModeToggle } from "@/components/mode-toggle"
 import { buttonVariants } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export function Navbar() {
   return (
@@ -14,13 +20,30 @@ export function Navbar() {
           </span>
           Triathlon Tools
         </Link>
-        <nav className="ml-auto flex items-center gap-1">
-          <Link href="/#simulator" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-            Bike Split Predictor
-          </Link>
-          <Link href="/cda" className={buttonVariants({ variant: "ghost", size: "sm" })}>
-            CdA Estimator
-          </Link>
+        <nav className="ml-auto flex items-center gap-1" aria-label="Main navigation">
+          <div className="hidden items-center gap-1 md:flex">
+            <Link href="/" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              Race Calculator
+            </Link>
+            <Link href="/bike-split#simulator" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              Bike Split Predictor
+            </Link>
+            <Link href="/cda" className={buttonVariants({ variant: "ghost", size: "sm" })}>
+              CdA Estimator
+            </Link>
+          </div>
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", size: "sm" })}>
+                Tools <ChevronDown className="size-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem render={<Link href="/" />}>Race Calculator</DropdownMenuItem>
+                <DropdownMenuItem render={<Link href="/bike-split#simulator" />}>Bike Split Predictor</DropdownMenuItem>
+                <DropdownMenuItem render={<Link href="/cda" />}>CdA Estimator</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
           <a
             href="https://github.com/miloknowles/triathlon-tools"
             target="_blank"

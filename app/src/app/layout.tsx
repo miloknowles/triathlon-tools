@@ -16,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Bike Split Predictor | Triathlon Tools",
-  description: "Predict your bike split from power, equipment, weather, and a real course elevation profile.",
+  title: "Triathlon Tools",
+  description: "Free browser-based calculators for triathlon training, race planning, bike splits, and aerodynamic analysis.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -30,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col">
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >

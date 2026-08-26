@@ -99,6 +99,21 @@ describe("BikeSimulator custom courses", () => {
     )
   })
 
+  it("clears the selected course and remembers the empty selection", async () => {
+    const user = userEvent.setup()
+    render(<BikeSimulator />)
+    await waitFor(() => expect(window.localStorage.getItem(BIKE_SIMULATOR_STORAGE_KEY)).not.toBeNull())
+
+    await user.click(screen.getByRole("button", { name: "Clear selection" }))
+
+    expect((screen.getByLabelText("Race course") as HTMLInputElement).value).toBe("")
+    expect((screen.getByRole("button", { name: "Run simulation" }) as HTMLButtonElement).disabled).toBe(true)
+    await waitFor(() => {
+      const stored = JSON.parse(window.localStorage.getItem(BIKE_SIMULATOR_STORAGE_KEY) ?? "{}")
+      expect(stored.values.courseName).toBe("")
+    })
+  })
+
   it("imports and simulates in-memory data while preserving it after a failed import", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch")
     const user = userEvent.setup()

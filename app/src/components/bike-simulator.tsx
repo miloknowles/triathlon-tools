@@ -85,7 +85,7 @@ function parseStoredInputs(raw: string | null): { units: Units; values: FormValu
     const stored = JSON.parse(raw) as { version?: unknown; units?: unknown; values?: Record<string, unknown> }
     if (stored.version !== 1 || !stored.values) return null
     const values = stored.values
-    const courseName = typeof values.courseName === "string" && COURSES.some((course) => course.value === values.courseName)
+    const courseName = values.courseName === "" || (typeof values.courseName === "string" && COURSES.some((course) => course.value === values.courseName))
       ? values.courseName
       : DEFAULTS.courseName
     return {
@@ -263,7 +263,7 @@ export function BikeSimulator() {
 
   useEffect(() => {
     if (!storageLoaded) return
-    const courseName = COURSES.some((course) => course.value === values.courseName)
+    const courseName = values.courseName === "" || COURSES.some((course) => course.value === values.courseName)
       ? values.courseName
       : DEFAULTS.courseName
     try {
@@ -293,6 +293,12 @@ export function BikeSimulator() {
 
   function selectCourse(value: string) {
     update("courseName", value)
+    setResults(null)
+    setError(null)
+  }
+
+  function clearCourse() {
+    update("courseName", "")
     setResults(null)
     setError(null)
   }
@@ -432,10 +438,11 @@ export function BikeSimulator() {
                     value={courseSelectItems.find((course) => course.value === values.courseName) ?? null}
                     onValueChange={(course) => {
                       if (course) selectCourse(course.value)
+                      else clearCourse()
                     }}
                     autoHighlight
                   >
-                    <ComboboxInput id="course" className="w-full" placeholder="Search courses..." />
+                    <ComboboxInput id="course" className="w-full" placeholder="Search courses..." showClear={Boolean(selectedCourse)} />
                     <ComboboxContent>
                       <ComboboxEmpty>No courses found.</ComboboxEmpty>
                       <ComboboxList>

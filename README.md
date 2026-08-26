@@ -25,6 +25,14 @@ Estimate effective race-position CdA from a cycling FIT file. The analyzer finds
 - Configure mass, rolling resistance, air density, drivetrain efficiency, window length, and maximum grade.
 - Review the CdA estimate, fitted wind, retained windows, outliers, and Crr sensitivity.
 
+### Race Calculator
+
+Plan a Sprint, Olympic, Half, Full, or custom-distance finish time from your own targets.
+
+- Enter a split time or pace/speed for each discipline and see the paired value update live.
+- Mix metric and imperial distance and pace units without losing the current target.
+- Include both transitions and review a five-split race breakdown.
+
 These results are planning and field-estimation aids, not substitutes for controlled aerodynamic testing. Their accuracy depends on the course and activity data as well as the assumptions you provide.
 
 ## Run Locally

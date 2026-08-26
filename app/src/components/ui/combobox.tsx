@@ -42,6 +42,7 @@ function ComboboxClear({ className, ...props }: ComboboxPrimitive.Clear.Props) {
       data-slot="combobox-clear"
       render={<InputGroupButton variant="ghost" size="icon-xs" />}
       className={cn(className)}
+      aria-label="Clear selection"
       {...props}
     >
       <XIcon className="pointer-events-none" />
