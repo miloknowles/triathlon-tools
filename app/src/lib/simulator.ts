@@ -92,6 +92,9 @@ export function simulate(course: CourseData, params: SimulatorParams): Simulatio
   if (!Number.isFinite(params.racePositionPercent) || params.racePositionPercent < 0 || params.racePositionPercent > 100) {
     throw new Error("Time in race position must be between 0% and 100%.")
   }
+  if (!Number.isFinite(params.lossDrivetrain) || params.lossDrivetrain < 0 || params.lossDrivetrain > 15) {
+    throw new Error("Drivetrain loss must be between 0% and 15%.")
+  }
 
   const timestep = params.timestep ?? 0.2
   const velocityMin = params.velocityMin ?? 1

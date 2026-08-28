@@ -72,6 +72,23 @@ describe("course simulation sources", () => {
     expect(() => simulate(course, { ...params, racePositionPercent: 101 })).toThrow("between 0% and 100%")
   })
 
+  it("accepts zero drivetrain loss without reducing power", () => {
+    const zeroLoss = simulate(course, { ...params, lossDrivetrain: 0 })
+    const equivalentPower = simulate(course, {
+      ...params,
+      avgPowerWatts: params.avgPowerWatts / 0.975,
+      lossDrivetrain: 2.5,
+    })
+
+    expect(zeroLoss.states.at(-1)?.t).toBeCloseTo(equivalentPower.states.at(-1)?.t ?? 0, 8)
+    expect(zeroLoss.states.at(-1)?.v).toBeCloseTo(equivalentPower.states.at(-1)?.v ?? 0, 8)
+  })
+
+  it("rejects drivetrain losses outside 0 to 15 percent", () => {
+    expect(() => simulate(course, { ...params, lossDrivetrain: -0.1 })).toThrow("between 0% and 15%")
+    expect(() => simulate(course, { ...params, lossDrivetrain: 15.1 })).toThrow("between 0% and 15%")
+  })
+
   it("caps downhill speed and increases elapsed time when braking is needed", () => {
     const downhillCourse: CourseData = {
       data: [

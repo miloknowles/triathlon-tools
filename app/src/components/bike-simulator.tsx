@@ -64,10 +64,10 @@ type FormValues = {
 const DEFAULTS: FormValues = {
   courseName: "santacruz_703",
   avgPowerWatts: 250,
-  avgCdA: 0.28,
+  avgCdA: 0.27,
   racePositionPercent: 95,
-  avgCrr: 0.00375,
-  lossDrivetrain: 4.7,
+  avgCrr: 0.0035,
+  lossDrivetrain: 2.5,
   massRiderKg: 75,
   massBikeKg: 10,
   ambientTempCelsius: 20,
@@ -98,7 +98,7 @@ function parseStoredInputs(raw: string | null): { units: Units; values: FormValu
         avgCdA: storedNumber(values.avgCdA, DEFAULTS.avgCdA, 0.1, 0.5),
         racePositionPercent: storedNumber(values.racePositionPercent, DEFAULTS.racePositionPercent, 0, 100),
         avgCrr: storedNumber(values.avgCrr, DEFAULTS.avgCrr, 0.001, 0.01),
-        lossDrivetrain: storedNumber(values.lossDrivetrain, DEFAULTS.lossDrivetrain, 0.1, 15),
+        lossDrivetrain: storedNumber(values.lossDrivetrain, DEFAULTS.lossDrivetrain, 0, 15),
         massRiderKg: storedNumber(values.massRiderKg, DEFAULTS.massRiderKg, 10, 200),
         massBikeKg: storedNumber(values.massBikeKg, DEFAULTS.massBikeKg, 1, 30),
         ambientTempCelsius: storedNumber(values.ambientTempCelsius, DEFAULTS.ambientTempCelsius, -18, 45),
@@ -525,7 +525,7 @@ export function BikeSimulator() {
               </div>
               <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
                 <FieldGroup className="gap-3">
-                  <NumberField id="cda" label="Aerodynamic drag" unit="CdA m²" description="Lower values represent a more aerodynamic rider and bike." value={values.avgCdA} step={0.005} min={0.1} max={0.5} onChange={(value) => update("avgCdA", value)} />
+                  <NumberField id="cda" label="Aerodynamic drag" unit="CdA m²" description="CdA represents the rider and bike in the selected race position and varies substantially with rider size." value={values.avgCdA} step={0.005} min={0.1} max={0.5} onChange={(value) => update("avgCdA", value)} />
                   <PresetButtons items={PRESETS.cda} value={values.avgCdA} onChange={(value) => update("avgCdA", value)} />
                 </FieldGroup>
                 <FieldGroup className="gap-3">
@@ -533,11 +533,11 @@ export function BikeSimulator() {
                   <PresetButtons items={PRESETS.racePosition} value={values.racePositionPercent} onChange={(value) => update("racePositionPercent", value)} />
                 </FieldGroup>
                 <FieldGroup className="gap-3">
-                  <NumberField id="crr" label="Rolling resistance" unit="Crr" description="This combines tire, pressure, and road-surface losses." value={values.avgCrr} step={0.00005} min={0.001} max={0.01} onChange={(value) => update("avgCrr", value)} />
+                  <NumberField id="crr" label="Rolling resistance" unit="Crr" description="Crr combines both tires, tire pressure, and pavement." value={values.avgCrr} step={0.00005} min={0.001} max={0.01} onChange={(value) => update("avgCrr", value)} />
                   <PresetButtons items={PRESETS.crr} value={values.avgCrr} onChange={(value) => update("avgCrr", value)} />
                 </FieldGroup>
                 <FieldGroup className="gap-3">
-                  <NumberField id="drivetrain" label="Drivetrain loss" unit="%" value={values.lossDrivetrain} step={0.1} min={0.1} max={15} onChange={(value) => update("lossDrivetrain", value)} />
+                  <NumberField id="drivetrain" label="Drivetrain loss" unit="%" description="Assumes power measured at the pedals or crank. For power measured at the wheel or trainer, use 0%." value={values.lossDrivetrain} step={0.1} min={0} max={15} onChange={(value) => update("lossDrivetrain", value)} />
                   <PresetButtons items={PRESETS.drivetrain} value={values.lossDrivetrain} onChange={(value) => update("lossDrivetrain", value)} />
                 </FieldGroup>
               </div>
