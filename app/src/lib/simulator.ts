@@ -8,6 +8,7 @@ export type SimulatorParams = {
   massRiderKg: number
   ambientTempCelsius: number
   relativeHumidity: number
+  maxSpeedMps: number
   velocityMin?: number
   timestep?: number
 }
@@ -94,6 +95,9 @@ export function simulate(course: CourseData, params: SimulatorParams): Simulatio
 
   const timestep = params.timestep ?? 0.2
   const velocityMin = params.velocityMin ?? 1
+  if (!Number.isFinite(params.maxSpeedMps) || params.maxSpeedMps <= velocityMin) {
+    throw new Error("Maximum speed must be greater than the minimum speed.")
+  }
   const racePositionFraction = params.racePositionPercent / 100
   const effectiveCdA = params.avgCdA * (
     racePositionFraction + OUT_OF_POSITION_CDA_MULTIPLIER * (1 - racePositionFraction)
@@ -130,7 +134,7 @@ export function simulate(course: CourseData, params: SimulatorParams): Simulatio
 
     const acceleration = (driveForce - dragForce - gravityForce - rollingForce) / totalMassKg
     distance += timestep * velocity
-    velocity += timestep * acceleration
+    velocity = Math.min(params.maxSpeedMps, velocity + timestep * acceleration)
     time += timestep
     dataIndex = before
 

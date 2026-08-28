@@ -40,6 +40,7 @@ describe("BikeSimulator custom courses", () => {
         massBikeKg: 9,
         ambientTempCelsius: 25,
         relativeHumidity: 60,
+        maxSpeedMps: 25,
       },
     }))
 
@@ -47,6 +48,7 @@ describe("BikeSimulator custom courses", () => {
 
     await waitFor(() => expect((screen.getByLabelText("Race power") as HTMLInputElement).value).toBe("310"))
     expect((screen.getByLabelText("Aerodynamic drag") as HTMLInputElement).value).toBe("0.24")
+    expect((screen.getByLabelText("Maximum speed") as HTMLInputElement).value).toBe("90")
     expect((screen.getByLabelText("Race course") as HTMLInputElement).value).toBe("🇺🇸 70.3 Chattanooga")
   })
 
@@ -54,13 +56,17 @@ describe("BikeSimulator custom courses", () => {
     const user = userEvent.setup()
     render(<BikeSimulator />)
     const power = screen.getByLabelText("Race power")
+    const maximumSpeed = screen.getByLabelText("Maximum speed")
 
     await user.clear(power)
     await user.type(power, "275")
+    await user.clear(maximumSpeed)
+    await user.type(maximumSpeed, "72")
 
     await waitFor(() => {
       const stored = JSON.parse(window.localStorage.getItem(BIKE_SIMULATOR_STORAGE_KEY) ?? "{}")
       expect(stored.values.avgPowerWatts).toBe(275)
+      expect(stored.values.maxSpeedMps).toBeCloseTo(20, 8)
     })
   })
 
@@ -77,6 +83,8 @@ describe("BikeSimulator custom courses", () => {
 
     expect(screen.getByLabelText("Relative humidity").getAttribute("step")).toBe("5")
     expect(screen.getByLabelText("Race power").getAttribute("step")).toBe("5")
+    expect((screen.getByLabelText("Maximum speed") as HTMLInputElement).value).toBe("80")
+    expect(screen.getByLabelText("Maximum speed").getAttribute("step")).toBe("1")
     expect(screen.getByLabelText("Rider mass").getAttribute("step")).toBe("1")
     expect(screen.getByLabelText("Bike mass").getAttribute("step")).toBe("1")
   })

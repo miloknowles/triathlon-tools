@@ -58,6 +58,7 @@ type FormValues = {
   massBikeKg: number
   ambientTempCelsius: number
   relativeHumidity: number
+  maxSpeedMps: number
 }
 
 const DEFAULTS: FormValues = {
@@ -71,6 +72,7 @@ const DEFAULTS: FormValues = {
   massBikeKg: 10,
   ambientTempCelsius: 20,
   relativeHumidity: 50,
+  maxSpeedMps: 80 / 3.6,
 }
 
 export const BIKE_SIMULATOR_STORAGE_KEY = "triathlon-tools:bike-simulator-inputs:v1"
@@ -101,6 +103,7 @@ function parseStoredInputs(raw: string | null): { units: Units; values: FormValu
         massBikeKg: storedNumber(values.massBikeKg, DEFAULTS.massBikeKg, 1, 30),
         ambientTempCelsius: storedNumber(values.ambientTempCelsius, DEFAULTS.ambientTempCelsius, -18, 45),
         relativeHumidity: storedNumber(values.relativeHumidity, DEFAULTS.relativeHumidity, 0, 100),
+        maxSpeedMps: storedNumber(values.maxSpeedMps, DEFAULTS.maxSpeedMps, 10 / 3.6, 150 / 3.6),
       },
     }
   } catch {
@@ -396,6 +399,7 @@ export function BikeSimulator() {
   const riderMass = units === "metric" ? values.massRiderKg : values.massRiderKg * 2.20462
   const bikeMass = units === "metric" ? values.massBikeKg : values.massBikeKg * 2.20462
   const temperature = units === "metric" ? values.ambientTempCelsius : values.ambientTempCelsius * 1.8 + 32
+  const maximumSpeed = values.maxSpeedMps * (units === "metric" ? 3.6 : 2.23694)
 
   return (
     <main id="simulator" className="mx-auto w-full max-w-[88rem] scroll-mt-20 px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
@@ -506,8 +510,9 @@ export function BikeSimulator() {
                 <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Rider & bike</h3>
                 <p className="text-sm text-muted-foreground">Your planned output and system mass.</p>
               </div>
-              <div className="grid gap-5 sm:grid-cols-3">
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 <NumberField id="power" label="Race power" unit="W" value={values.avgPowerWatts} step={5} min={50} max={1000} onChange={(value) => update("avgPowerWatts", value)} />
+                <NumberField id="maximum-speed" label="Maximum speed" unit={units === "metric" ? "km/h" : "mph"} description="Caps downhill speed to account for braking on fast or technical descents." value={maximumSpeed} step={1} min={units === "metric" ? 10 : 7} max={units === "metric" ? 150 : 93} onChange={(value) => update("maxSpeedMps", value / (units === "metric" ? 3.6 : 2.23694))} />
                 <NumberField id="rider-mass" label="Rider mass" unit={units === "metric" ? "kg" : "lb"} value={riderMass} step={1} min={units === "metric" ? 10 : 22} max={units === "metric" ? 200 : 440} onChange={(value) => update("massRiderKg", units === "metric" ? value : value / 2.20462)} />
                 <NumberField id="bike-mass" label="Bike mass" unit={units === "metric" ? "kg" : "lb"} value={bikeMass} step={1} min={units === "metric" ? 1 : 2.2} max={units === "metric" ? 30 : 66} onChange={(value) => update("massBikeKg", units === "metric" ? value : value / 2.20462)} />
               </div>
