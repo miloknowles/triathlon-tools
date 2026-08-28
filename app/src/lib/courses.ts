@@ -161,12 +161,20 @@ export const COURSES: Course[] = [
     url: "/courses/Patriot_Half_2023.json",
     origin: "https://www.strava.com/routes/3043598634032057304",
   },
-  // {
-  //   value: "nice_703",
-  //   label: "Nice 70.3",
-  //   emoji: "🇫🇷",
-  //   origin: "https://ridewithgps.com/routes/28349391",
-  // },
+  {
+    value: "nice_703",
+    label: "70.3 Nice",
+    emoji: "🇫🇷",
+    url: "/courses/IM_Nice_70.3.json",
+    origin: "https://ridewithgps.com/routes/28349391",
+  },
+  {
+    value: "marbella_703",
+    label: "70.3 Marbella",
+    emoji: "🇪🇸",
+    url: "/courses/IM_Marbella_70.3.json",
+    origin: "https://ridewithgps.com/routes/23793651",
+  },
   {
     value: "lake_placid_im",
     label: "Ironman Lake Placid",

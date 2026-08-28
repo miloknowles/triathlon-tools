@@ -20,6 +20,7 @@ const params: SimulatorParams = {
   massRiderKg: 75,
   ambientTempCelsius: 20,
   relativeHumidity: 50,
+  maxSpeedMps: 80 / 3.6,
 }
 
 afterEach(() => vi.restoreAllMocks())
@@ -69,5 +70,42 @@ describe("course simulation sources", () => {
   it("rejects race-position percentages outside 0 to 100", () => {
     expect(() => simulate(course, { ...params, racePositionPercent: -1 })).toThrow("between 0% and 100%")
     expect(() => simulate(course, { ...params, racePositionPercent: 101 })).toThrow("between 0% and 100%")
+  })
+
+  it("accepts zero drivetrain loss without reducing power", () => {
+    const zeroLoss = simulate(course, { ...params, lossDrivetrain: 0 })
+    const equivalentPower = simulate(course, {
+      ...params,
+      avgPowerWatts: params.avgPowerWatts / 0.975,
+      lossDrivetrain: 2.5,
+    })
+
+    expect(zeroLoss.states.at(-1)?.t).toBeCloseTo(equivalentPower.states.at(-1)?.t ?? 0, 8)
+    expect(zeroLoss.states.at(-1)?.v).toBeCloseTo(equivalentPower.states.at(-1)?.v ?? 0, 8)
+  })
+
+  it("rejects drivetrain losses outside 0 to 15 percent", () => {
+    expect(() => simulate(course, { ...params, lossDrivetrain: -0.1 })).toThrow("between 0% and 15%")
+    expect(() => simulate(course, { ...params, lossDrivetrain: 15.1 })).toThrow("between 0% and 15%")
+  })
+
+  it("caps downhill speed and increases elapsed time when braking is needed", () => {
+    const downhillCourse: CourseData = {
+      data: [
+        { x: 0, y: 1000, a: -0.1 },
+        { x: 10_000, y: 0, a: -0.1 },
+      ],
+      meta: { totalDistanceMeters: 10_000, totalGainMeters: 0 },
+    }
+    const capped = simulate(downhillCourse, { ...params, maxSpeedMps: 10 })
+    const uncapped = simulate(downhillCourse, { ...params, maxSpeedMps: 100 })
+
+    expect(Math.max(...capped.states.map((state) => state.v))).toBeLessThanOrEqual(10)
+    expect(capped.states.at(-1)?.t).toBeGreaterThan(uncapped.states.at(-1)?.t ?? 0)
+  })
+
+  it("rejects a maximum speed at or below the minimum simulation speed", () => {
+    expect(() => simulate(course, { ...params, maxSpeedMps: 1 })).toThrow("Maximum speed")
+    expect(() => simulate(course, { ...params, maxSpeedMps: Number.POSITIVE_INFINITY })).toThrow("Maximum speed")
   })
 })

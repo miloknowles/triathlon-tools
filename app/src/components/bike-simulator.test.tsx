@@ -32,21 +32,25 @@ describe("BikeSimulator custom courses", () => {
       values: {
         courseName: "chattanooga_703",
         avgPowerWatts: 310,
-        avgCdA: 0.24,
+        avgCdA: 0.241,
         racePositionPercent: 98,
-        avgCrr: 0.0033,
-        lossDrivetrain: 3.7,
+        avgCrr: 0.0042,
+        lossDrivetrain: 3.3,
         massRiderKg: 70,
         massBikeKg: 9,
         ambientTempCelsius: 25,
         relativeHumidity: 60,
+        maxSpeedMps: 25,
       },
     }))
 
     render(<BikeSimulator />)
 
     await waitFor(() => expect((screen.getByLabelText("Race power") as HTMLInputElement).value).toBe("310"))
-    expect((screen.getByLabelText("Aerodynamic drag") as HTMLInputElement).value).toBe("0.24")
+    expect((screen.getByLabelText("Aerodynamic drag") as HTMLInputElement).value).toBe("0.241")
+    expect((screen.getByLabelText("Rolling resistance") as HTMLInputElement).value).toBe("0.0042")
+    expect((screen.getByLabelText("Drivetrain loss") as HTMLInputElement).value).toBe("3.3")
+    expect((screen.getByLabelText("Maximum speed") as HTMLInputElement).value).toBe("90")
     expect((screen.getByLabelText("Race course") as HTMLInputElement).value).toBe("🇺🇸 70.3 Chattanooga")
   })
 
@@ -54,13 +58,17 @@ describe("BikeSimulator custom courses", () => {
     const user = userEvent.setup()
     render(<BikeSimulator />)
     const power = screen.getByLabelText("Race power")
+    const maximumSpeed = screen.getByLabelText("Maximum speed")
 
     await user.clear(power)
     await user.type(power, "275")
+    await user.clear(maximumSpeed)
+    await user.type(maximumSpeed, "72")
 
     await waitFor(() => {
       const stored = JSON.parse(window.localStorage.getItem(BIKE_SIMULATOR_STORAGE_KEY) ?? "{}")
       expect(stored.values.avgPowerWatts).toBe(275)
+      expect(stored.values.maxSpeedMps).toBeCloseTo(20, 8)
     })
   })
 
@@ -71,12 +79,48 @@ describe("BikeSimulator custom courses", () => {
     await waitFor(() => expect((screen.getByLabelText("Race power") as HTMLInputElement).value).toBe("250"))
   })
 
+  it("uses the revised equipment defaults for a new session", async () => {
+    render(<BikeSimulator />)
+
+    await waitFor(() => expect(window.localStorage.getItem(BIKE_SIMULATOR_STORAGE_KEY)).not.toBeNull())
+    expect((screen.getByLabelText("Aerodynamic drag") as HTMLInputElement).value).toBe("0.27")
+    expect((screen.getByLabelText("Rolling resistance") as HTMLInputElement).value).toBe("0.0035")
+    expect((screen.getByLabelText("Drivetrain loss") as HTMLInputElement).value).toBe("2.5")
+  })
+
+  it("applies every equipment preset to its editable numeric input", async () => {
+    const user = userEvent.setup()
+    render(<BikeSimulator />)
+
+    const cases = [
+      ["Aerodynamic drag", "Road — hoods", "0.34"],
+      ["Aerodynamic drag", "Road — aero", "0.3"],
+      ["Aerodynamic drag", "Tri — aerobars", "0.27"],
+      ["Aerodynamic drag", "Tri — optimized", "0.23"],
+      ["Rolling resistance", "Race tire / smooth road", "0.0025"],
+      ["Rolling resistance", "Race tire / typical road", "0.0035"],
+      ["Rolling resistance", "Durable tire / typical road", "0.005"],
+      ["Rolling resistance", "Rough pavement", "0.0065"],
+      ["Drivetrain loss", "Wheel-measured power", "0"],
+      ["Drivetrain loss", "Race-prepped", "2"],
+      ["Drivetrain loss", "Clean and lubricated", "2.5"],
+      ["Drivetrain loss", "Dirty or wet", "5"],
+    ] as const
+
+    for (const [inputLabel, buttonLabel, expected] of cases) {
+      await user.click(screen.getByRole("button", { name: buttonLabel }))
+      expect((screen.getByLabelText(inputLabel) as HTMLInputElement).value).toBe(expected)
+    }
+  })
+
   it("uses practical increments for common race inputs", async () => {
     render(<BikeSimulator />)
     await waitFor(() => expect(window.localStorage.getItem(BIKE_SIMULATOR_STORAGE_KEY)).not.toBeNull())
 
     expect(screen.getByLabelText("Relative humidity").getAttribute("step")).toBe("5")
     expect(screen.getByLabelText("Race power").getAttribute("step")).toBe("5")
+    expect((screen.getByLabelText("Maximum speed") as HTMLInputElement).value).toBe("80")
+    expect(screen.getByLabelText("Maximum speed").getAttribute("step")).toBe("1")
     expect(screen.getByLabelText("Rider mass").getAttribute("step")).toBe("1")
     expect(screen.getByLabelText("Bike mass").getAttribute("step")).toBe("1")
   })

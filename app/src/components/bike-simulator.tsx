@@ -58,19 +58,21 @@ type FormValues = {
   massBikeKg: number
   ambientTempCelsius: number
   relativeHumidity: number
+  maxSpeedMps: number
 }
 
 const DEFAULTS: FormValues = {
   courseName: "santacruz_703",
   avgPowerWatts: 250,
-  avgCdA: 0.28,
+  avgCdA: 0.27,
   racePositionPercent: 95,
-  avgCrr: 0.00375,
-  lossDrivetrain: 4.7,
+  avgCrr: 0.0035,
+  lossDrivetrain: 2.5,
   massRiderKg: 75,
   massBikeKg: 10,
   ambientTempCelsius: 20,
   relativeHumidity: 50,
+  maxSpeedMps: 80 / 3.6,
 }
 
 export const BIKE_SIMULATOR_STORAGE_KEY = "triathlon-tools:bike-simulator-inputs:v1"
@@ -96,11 +98,12 @@ function parseStoredInputs(raw: string | null): { units: Units; values: FormValu
         avgCdA: storedNumber(values.avgCdA, DEFAULTS.avgCdA, 0.1, 0.5),
         racePositionPercent: storedNumber(values.racePositionPercent, DEFAULTS.racePositionPercent, 0, 100),
         avgCrr: storedNumber(values.avgCrr, DEFAULTS.avgCrr, 0.001, 0.01),
-        lossDrivetrain: storedNumber(values.lossDrivetrain, DEFAULTS.lossDrivetrain, 0.1, 15),
+        lossDrivetrain: storedNumber(values.lossDrivetrain, DEFAULTS.lossDrivetrain, 0, 15),
         massRiderKg: storedNumber(values.massRiderKg, DEFAULTS.massRiderKg, 10, 200),
         massBikeKg: storedNumber(values.massBikeKg, DEFAULTS.massBikeKg, 1, 30),
         ambientTempCelsius: storedNumber(values.ambientTempCelsius, DEFAULTS.ambientTempCelsius, -18, 45),
         relativeHumidity: storedNumber(values.relativeHumidity, DEFAULTS.relativeHumidity, 0, 100),
+        maxSpeedMps: storedNumber(values.maxSpeedMps, DEFAULTS.maxSpeedMps, 10 / 3.6, 150 / 3.6),
       },
     }
   } catch {
@@ -396,6 +399,7 @@ export function BikeSimulator() {
   const riderMass = units === "metric" ? values.massRiderKg : values.massRiderKg * 2.20462
   const bikeMass = units === "metric" ? values.massBikeKg : values.massBikeKg * 2.20462
   const temperature = units === "metric" ? values.ambientTempCelsius : values.ambientTempCelsius * 1.8 + 32
+  const maximumSpeed = values.maxSpeedMps * (units === "metric" ? 3.6 : 2.23694)
 
   return (
     <main id="simulator" className="mx-auto w-full max-w-[88rem] scroll-mt-20 px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
@@ -506,10 +510,11 @@ export function BikeSimulator() {
                 <h3 className="mb-1 text-sm font-semibold uppercase tracking-wider text-muted-foreground">Rider & bike</h3>
                 <p className="text-sm text-muted-foreground">Your planned output and system mass.</p>
               </div>
-              <div className="grid gap-5 sm:grid-cols-3">
+              <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 <NumberField id="power" label="Race power" unit="W" value={values.avgPowerWatts} step={5} min={50} max={1000} onChange={(value) => update("avgPowerWatts", value)} />
                 <NumberField id="rider-mass" label="Rider mass" unit={units === "metric" ? "kg" : "lb"} value={riderMass} step={1} min={units === "metric" ? 10 : 22} max={units === "metric" ? 200 : 440} onChange={(value) => update("massRiderKg", units === "metric" ? value : value / 2.20462)} />
                 <NumberField id="bike-mass" label="Bike mass" unit={units === "metric" ? "kg" : "lb"} value={bikeMass} step={1} min={units === "metric" ? 1 : 2.2} max={units === "metric" ? 30 : 66} onChange={(value) => update("massBikeKg", units === "metric" ? value : value / 2.20462)} />
+                <NumberField id="maximum-speed" label="Maximum speed" unit={units === "metric" ? "km/h" : "mph"} description="Caps downhill speed to account for braking on fast or technical descents." value={maximumSpeed} step={1} min={units === "metric" ? 10 : 7} max={units === "metric" ? 150 : 93} onChange={(value) => update("maxSpeedMps", value / (units === "metric" ? 3.6 : 2.23694))} />
               </div>
             </section>
 
@@ -520,7 +525,7 @@ export function BikeSimulator() {
               </div>
               <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
                 <FieldGroup className="gap-3">
-                  <NumberField id="cda" label="Aerodynamic drag" unit="CdA m²" description="Lower values represent a more aerodynamic rider and bike." value={values.avgCdA} step={0.005} min={0.1} max={0.5} onChange={(value) => update("avgCdA", value)} />
+                  <NumberField id="cda" label="Aerodynamic drag" unit="CdA m²" description="CdA represents the rider and bike in the selected race position and varies substantially with rider size." value={values.avgCdA} step={0.005} min={0.1} max={0.5} onChange={(value) => update("avgCdA", value)} />
                   <PresetButtons items={PRESETS.cda} value={values.avgCdA} onChange={(value) => update("avgCdA", value)} />
                 </FieldGroup>
                 <FieldGroup className="gap-3">
@@ -528,11 +533,11 @@ export function BikeSimulator() {
                   <PresetButtons items={PRESETS.racePosition} value={values.racePositionPercent} onChange={(value) => update("racePositionPercent", value)} />
                 </FieldGroup>
                 <FieldGroup className="gap-3">
-                  <NumberField id="crr" label="Rolling resistance" unit="Crr" description="This combines tire, pressure, and road-surface losses." value={values.avgCrr} step={0.00005} min={0.001} max={0.01} onChange={(value) => update("avgCrr", value)} />
+                  <NumberField id="crr" label="Rolling resistance" unit="Crr" description="Crr combines both tires, tire pressure, and pavement." value={values.avgCrr} step={0.00005} min={0.001} max={0.01} onChange={(value) => update("avgCrr", value)} />
                   <PresetButtons items={PRESETS.crr} value={values.avgCrr} onChange={(value) => update("avgCrr", value)} />
                 </FieldGroup>
                 <FieldGroup className="gap-3">
-                  <NumberField id="drivetrain" label="Drivetrain loss" unit="%" value={values.lossDrivetrain} step={0.1} min={0.1} max={15} onChange={(value) => update("lossDrivetrain", value)} />
+                  <NumberField id="drivetrain" label="Drivetrain loss" unit="%" description="Assumes power measured at the pedals or crank. For power measured at the wheel or trainer, use 0%." value={values.lossDrivetrain} step={0.1} min={0} max={15} onChange={(value) => update("lossDrivetrain", value)} />
                   <PresetButtons items={PRESETS.drivetrain} value={values.lossDrivetrain} onChange={(value) => update("lossDrivetrain", value)} />
                 </FieldGroup>
               </div>
