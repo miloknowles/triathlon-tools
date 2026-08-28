@@ -512,9 +512,9 @@ export function BikeSimulator() {
               </div>
               <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
                 <NumberField id="power" label="Race power" unit="W" value={values.avgPowerWatts} step={5} min={50} max={1000} onChange={(value) => update("avgPowerWatts", value)} />
-                <NumberField id="maximum-speed" label="Maximum speed" unit={units === "metric" ? "km/h" : "mph"} description="Caps downhill speed to account for braking on fast or technical descents." value={maximumSpeed} step={1} min={units === "metric" ? 10 : 7} max={units === "metric" ? 150 : 93} onChange={(value) => update("maxSpeedMps", value / (units === "metric" ? 3.6 : 2.23694))} />
                 <NumberField id="rider-mass" label="Rider mass" unit={units === "metric" ? "kg" : "lb"} value={riderMass} step={1} min={units === "metric" ? 10 : 22} max={units === "metric" ? 200 : 440} onChange={(value) => update("massRiderKg", units === "metric" ? value : value / 2.20462)} />
                 <NumberField id="bike-mass" label="Bike mass" unit={units === "metric" ? "kg" : "lb"} value={bikeMass} step={1} min={units === "metric" ? 1 : 2.2} max={units === "metric" ? 30 : 66} onChange={(value) => update("massBikeKg", units === "metric" ? value : value / 2.20462)} />
+                <NumberField id="maximum-speed" label="Maximum speed" unit={units === "metric" ? "km/h" : "mph"} description="Caps downhill speed to account for braking on fast or technical descents." value={maximumSpeed} step={1} min={units === "metric" ? 10 : 7} max={units === "metric" ? 150 : 93} onChange={(value) => update("maxSpeedMps", value / (units === "metric" ? 3.6 : 2.23694))} />
               </div>
             </section>
 
